@@ -105,3 +105,9 @@ function isUnlocked(testId) {
   return getUnlockedTests().includes(testId);
 }
 function isPremium(testId) { return PREMIUM_TEST_IDS.includes(testId); }
+
+// ── PYQ Test configs (Test ID 101+) ──
+// TEST_DIFFICULTY, TEST_RATINGS, TEST_ATTEMPT_COUNTS for PYQ tests
+TEST_DIFFICULTY[101] = 'medium';
+TEST_RATINGS[101]    = 4.9;
+TEST_ATTEMPT_COUNTS[101] = 0;
