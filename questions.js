@@ -1634,7 +1634,7 @@ const ALL_TESTS = [
 }
 
 ,{
-  id: 201,
+  id: 202,
   title: "BPSC TRE 2.0 — Full Paper PYQ (Hindi)",
   subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2024",
   icon: "📖",
@@ -1650,7 +1650,7 @@ const ALL_TESTS = [
 }
   
 ,{
-  id: 202,
+  id: 101,
   title: "BPSC TRE 1.0 — Full Paper PYQ",
   subtitle: "TPYQ1 | Previous Year 2023",
   icon: "🎯",
