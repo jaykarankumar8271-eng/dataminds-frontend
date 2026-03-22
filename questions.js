@@ -1618,9 +1618,9 @@ const ALL_TESTS = [
 }
 
 ,{
-  id: 21,
+  id: 101,
   title: "BPSC TRE 1.0 — Full Paper PYQ",
-  subtitle: "Test 21 | Previous Year 2023 | BPSC TRE 4.0 + Bihar STET",
+  subtitle: "TPYQ1 | Previous Year 2023",
   icon: "🎯",
   topic: "Mixed",
   difficulty: "Medium",
