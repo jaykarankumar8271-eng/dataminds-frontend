@@ -805,7 +805,7 @@ function renderProTests() {
         <div class="tcp-meta">
           <span class="tcp-diff ${diff}">${diff.charAt(0).toUpperCase() + diff.slice(1)}</span>
           <span class="tcp-info">❓ ${total} Qs</span>
-          <span class="tcp-info">⏱ 20 Min</span>
+          <span class="tcp-info">⏱ ${test.timeLimit||20} Min</span>
           <span class="tcp-info">👥 ${attempts.toLocaleString()}</span>
         </div>
 
