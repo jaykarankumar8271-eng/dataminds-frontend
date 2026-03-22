@@ -135,40 +135,19 @@ function renderSectionTabs() {
 }
 
 function switchSection(secId) {
-  currentSection = secId; renderSectionTabs();
-  if (secId === 'topic') { renderTests(currentFilter); return; }
-
-  // PYQ section — show tests with examType='Full Mock' or tag containing 'PYQ'
-  if (secId === 'pyq') {
-    const pyqTests = ALL_TESTS.filter(t =>
-      t.examType === 'Full Mock' ||
-      (t.tag && t.tag.toLowerCase().includes('pyq')) ||
-      (t.title && t.title.toLowerCase().includes('pyq')) ||
-      (t.title && t.title.toLowerCase().includes('previous year'))
-    );
-    if (pyqTests.length > 0) {
-      renderTests(currentFilter, pyqTests);
-      return;
-    }
-  }
-
-  // Full Mock section
+  currentSection = secId;
+  renderSectionTabs();
   if (secId === 'full') {
-    const fullTests = ALL_TESTS.filter(t => t.examType === 'Full Mock' && !(t.title.toLowerCase().includes('pyq') || t.title.toLowerCase().includes('previous year')));
-    if (fullTests.length > 0) {
-      renderTests(currentFilter, fullTests);
-      return;
-    }
+    const grid = document.getElementById('tests-grid');
+    if (grid) grid.innerHTML = `<div class="coming-soon-state">
+      <div class="cs-icon">📋</div>
+      <h3>Full Length Mock Tests</h3>
+      <p>Coming soon! We're preparing high-quality full-length mock tests for you.</p>
+      <button class="btn-primary-sm" onclick="switchSection('topic')">← Back to Topic Tests</button>
+    </div>`;
+    return;
   }
-
-  const grid = document.getElementById('tests-grid');
-  if (!grid) return;
-  grid.innerHTML = `<div class="coming-soon-state">
-    <div class="cs-icon">${secId==='full'?'📋':'🗂️'}</div>
-    <h3>${secId==='full'?'Full Length Mock Tests':'Previous Year Questions'}</h3>
-    <p>Coming soon! We're preparing high-quality ${secId==='full'?'full-length mock tests':'PYQ papers'} for you.</p>
-    <button class="btn-primary-sm" onclick="switchSection('topic')">← Back to Topic Tests</button>
-  </div>`;
+  renderTests(currentFilter);
 }
 
 // ── ADVANCED FILTERS ──
