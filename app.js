@@ -41,6 +41,7 @@ const _origOpenTestIntro = typeof openTestIntro !== 'undefined' ? openTestIntro 
 
 async function openTestIntroWithDB(testId) {
   const test = ALL_TESTS.find(t => t.id === testId);
+  // Load from DB if questions array is empty (DB-based tests like TPYQ series)
   if (test && (!test.questions || test.questions.length === 0)) {
     showToast('Loading questions... ⏳');
     const dbQuestions = await loadDBQuestions(testId);
