@@ -1633,6 +1633,22 @@ const ALL_TESTS = [
   questions: []
 }
 
+  ,{
+  id: 101,
+  title: "BPSC TRE 1.0 — Full Paper PYQ",
+  subtitle: "TPYQ1 | Previous Year 2023",
+  icon: "🎯",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC TRE 1.0",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+  
 ,{
   id: 202,
   title: "BPSC TRE 2.0 — Full Paper PYQ (Hindi)",
@@ -1649,22 +1665,6 @@ const ALL_TESTS = [
   questions: []
 }
   
-,{
-  id: 101,
-  title: "BPSC TRE 1.0 — Full Paper PYQ",
-  subtitle: "TPYQ1 | Previous Year 2023",
-  icon: "🎯",
-  topic: "Mixed",
-  difficulty: "Medium",
-  examType: "Full Mock",
-  tag: "BPSC TRE 1.0",
-  totalQuestions: 150,
-  timeLimit: 150,
-  perCorrect: 1,
-  negative: 0,
-  questions: []
-}
-
   ,{
   id: 102,
   title: "BPSC TRE 2.0 — Full Paper PYQ",
