@@ -1626,8 +1626,8 @@ const ALL_TESTS = [
   difficulty: "Medium",
   examType: "Full Mock",
   tag: "BPSC PGT 2023",
-  totalQuestions: 120,
-  timeLimit: 120,
+  totalQuestions: 150,
+  timeLimit: 150,
   perCorrect: 1,
   negative: 0,
   questions: []
@@ -1642,8 +1642,8 @@ const ALL_TESTS = [
   difficulty: "Medium",
   examType: "Full Mock",
   tag: "BPSC TRE 1.0",
-  totalQuestions: 120,
-  timeLimit: 120,
+  totalQuestions: 150,
+  timeLimit: 150,
   perCorrect: 1,
   negative: 0,
   questions: []
