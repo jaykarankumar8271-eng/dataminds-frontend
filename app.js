@@ -194,17 +194,20 @@ function setDiffFilter(val) { difficultyFilter=val; renderAdvancedFilters(); ren
 function setPremiumFilter(val) { premiumFilter=val; renderAdvancedFilters(); renderTests(currentFilter); }
 
 // ── RENDER TESTS ──
-function renderTests(filter='all', testList=null) {
-  const ALL_LIST = testList || ALL_TESTS;
+function renderTests(filter='all') {
   currentFilter = filter;
-  if (currentSection !== 'topic' && !testList) return;
   const results   = loadResults();
   const grid      = document.getElementById('tests-grid');
   if (!grid) return;
   grid.innerHTML  = '';
   const bookmarks = getBookmarks();
 
-  let list = ALL_LIST.filter(t => {
+  // Topic-wise: T1-T20, PYQ: T100+
+  const baseTests = currentSection === 'pyq'
+    ? ALL_TESTS.filter(t => t.id >= 100)
+    : ALL_TESTS.filter(t => t.id < 100);
+
+  let list = baseTests.filter(t => {
     const attempted  = !!results[t.id];
     const bookmarked = bookmarks.includes(t.id);
     const diff       = TEST_DIFFICULTY[t.id] || 'medium';
