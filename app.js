@@ -136,12 +136,36 @@ function renderSectionTabs() {
 function switchSection(secId) {
   currentSection = secId; renderSectionTabs();
   if (secId === 'topic') { renderTests(currentFilter); return; }
+
+  // PYQ section — show tests with examType='Full Mock' or tag containing 'PYQ'
+  if (secId === 'pyq') {
+    const pyqTests = ALL_TESTS.filter(t =>
+      t.examType === 'Full Mock' ||
+      (t.tag && t.tag.toLowerCase().includes('pyq')) ||
+      (t.title && t.title.toLowerCase().includes('pyq')) ||
+      (t.title && t.title.toLowerCase().includes('previous year'))
+    );
+    if (pyqTests.length > 0) {
+      renderTests(currentFilter, pyqTests);
+      return;
+    }
+  }
+
+  // Full Mock section
+  if (secId === 'full') {
+    const fullTests = ALL_TESTS.filter(t => t.examType === 'Full Mock' && !(t.title.toLowerCase().includes('pyq') || t.title.toLowerCase().includes('previous year')));
+    if (fullTests.length > 0) {
+      renderTests(currentFilter, fullTests);
+      return;
+    }
+  }
+
   const grid = document.getElementById('tests-grid');
   if (!grid) return;
   grid.innerHTML = `<div class="coming-soon-state">
     <div class="cs-icon">${secId==='full'?'📋':'🗂️'}</div>
     <h3>${secId==='full'?'Full Length Mock Tests':'Previous Year Questions'}</h3>
-    <p>Coming soon! High-quality ${secId==='full'?'full-length mock tests':'PYQ papers'} being prepared.</p>
+    <p>Coming soon! We're preparing high-quality ${secId==='full'?'full-length mock tests':'PYQ papers'} for you.</p>
     <button class="btn-primary-sm" onclick="switchSection('topic')">← Back to Topic Tests</button>
   </div>`;
 }
@@ -169,7 +193,8 @@ function setDiffFilter(val) { difficultyFilter=val; renderAdvancedFilters(); ren
 function setPremiumFilter(val) { premiumFilter=val; renderAdvancedFilters(); renderTests(currentFilter); }
 
 // ── RENDER TESTS ──
-function renderTests(filter='all') {
+function renderTests(filter='all', testList=null) {
+  const ALL_LIST = testList || ALL_TESTS;
   currentFilter = filter;
   if (currentSection !== 'topic') return;
   const results   = loadResults();
@@ -178,7 +203,7 @@ function renderTests(filter='all') {
   grid.innerHTML  = '';
   const bookmarks = getBookmarks();
 
-  let list = ALL_TESTS.filter(t => {
+  let list = ALL_LIST.filter(t => {
     const attempted  = !!results[t.id];
     const bookmarked = bookmarks.includes(t.id);
     const diff       = TEST_DIFFICULTY[t.id] || 'medium';
@@ -732,7 +757,7 @@ function renderProTests() {
   const results   = loadResults();
   const bookmarks = getBookmarks();
 
-  let list = ALL_TESTS.filter(t => {
+  let list = ALL_LIST.filter(t => {
     const attempted  = !!results[t.id];
     const bookmarked = bookmarks.includes(t.id);
     const diff       = TEST_DIFFICULTY[t.id] || 'medium';
