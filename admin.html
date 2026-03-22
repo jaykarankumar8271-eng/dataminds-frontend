@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataMinds Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0A0E1A;--surface:#111827;--surface2:#1E2535;--border:rgba(255,255,255,.08);
+  --text:#F0F4FF;--text2:#94A3B8;--text3:#64748B;
+  --accent:#FF6B35;--accent2:#FF8C5A;
+  --success:#10B981;--warning:#F59E0B;--danger:#EF4444;--info:#3B82F6;
+  --radius:12px;--radius-sm:8px;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:420px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo h1{font-size:28px;font-weight:800;color:var(--accent)}
+.login-logo p{font-size:13px;color:var(--text3);margin-top:4px}
+.login-box label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.login-box input{width:100%;padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s}
+.login-box input:focus{border-color:var(--accent)}
+.login-btn{width:100%;padding:13px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:20px;transition:opacity .2s}
+.login-btn:hover{opacity:.9}
+.login-err{color:var(--danger);font-size:13px;margin-top:10px;text-align:center;display:none}
+
+/* ── APP ── */
+#admin-app{display:none;min-height:100vh}
+.admin-layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.admin-sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column}
+.sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-brand h2{font-size:18px;font-weight:800;color:var(--accent)}
+.sidebar-brand p{font-size:11px;color:var(--text3);margin-top:2px}
+.sidebar-nav{padding:12px 8px;flex:1}
+.nav-section{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:8px 12px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-item.active{background:rgba(255,107,53,.1);color:var(--accent)}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border)}
+.logout-btn{width:100%;padding:8px 12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);color:#EF4444;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.logout-btn:hover{background:rgba(239,68,68,.2)}
+
+/* ── MAIN ── */
+.admin-main{background:var(--bg);overflow-y:auto}
+.page-header{padding:24px 28px 0;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:20px;font-weight:800;color:var(--text);padding-bottom:20px}
+.page-content{padding:24px 28px}
+
+/* ── SECTION PAGES ── */
+.admin-section{display:none}
+.admin-section.active{display:block}
+
+/* ── STATS CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.stat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.si-orange{background:rgba(255,107,53,.15)}
+.si-green{background:rgba(16,185,129,.15)}
+.si-blue{background:rgba(59,130,246,.15)}
+.si-yellow{background:rgba(245,158,11,.15)}
+.stat-val{font-size:28px;font-weight:800;color:var(--text)}
+.stat-lbl{font-size:12px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+
+/* ── CARD ── */
+.admin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-header h3{font-size:15px;font-weight:700;color:var(--text)}
+.card-body{padding:20px}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border-radius:var(--radius-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.9}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{opacity:.9}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{opacity:.9}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-warning{background:var(--warning);color:#fff}
+
+/* ── TABLE ── */
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.admin-table td{padding:12px 14px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:rgba(255,255,255,.02)}
+.admin-table td strong{color:var(--text);font-weight:600}
+
+/* ── BADGES ── */
+.badge{padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(16,185,129,.15);color:#10B981}
+.badge-red{background:rgba(239,68,68,.1);color:#EF4444}
+.badge-orange{background:rgba(255,107,53,.15);color:#FF6B35}
+.badge-blue{background:rgba(59,130,246,.1);color:#3B82F6}
+.badge-yellow{background:rgba(245,158,11,.1);color:#F59E0B}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:10px 14px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{min-height:80px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* ── UPLOAD ZONE ── */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(255,107,53,.04)}
+.upload-icon{font-size:40px;margin-bottom:12px}
+.upload-zone h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.upload-zone p{font-size:13px;color:var(--text3)}
+.upload-zone input{display:none}
+
+/* ── PROGRESS ── */
+.upload-progress{background:var(--surface2);border-radius:20px;height:8px;overflow:hidden;margin:12px 0}
+.upload-progress-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .3s}
+
+/* ── QUESTION EDIT MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:17px;font-weight:700;color:var(--text)}
+.modal-close{background:rgba(255,255,255,.06);border:none;color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── TEST SELECTOR ── */
+.test-selector{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.test-btn{padding:8px 4px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s}
+.test-btn:hover{border-color:var(--accent);color:var(--accent)}
+.test-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.test-btn.has-q{border-color:rgba(16,185,129,.4);color:var(--success)}
+.test-btn.active.has-q{background:var(--success);border-color:var(--success)}
+
+/* ── OPTION INPUTS ── */
+.option-input-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.option-label{width:28px;height:28px;border-radius:50%;background:rgba(255,107,53,.15);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.option-input-row input{flex:1;padding:8px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:13px;outline:none}
+.option-input-row input:focus{border-color:var(--accent)}
+.correct-radio{accent-color:var(--success);width:16px;height:16px;cursor:pointer}
+
+/* ── FORMAT HELPER ── */
+.format-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;font-size:12px;color:var(--text3)}
+.format-box code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:4px;color:var(--text2);font-family:'Courier New',monospace;font-size:12px}
+
+/* ── TOAST ── */
+.admin-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E2535;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:600;color:var(--text);z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;align-items:center;gap:8px}
+.admin-toast.show{display:flex}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-state-icon{font-size:40px;margin-bottom:12px}
+.empty-state p{font-size:13px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .admin-layout{grid-template-columns:1fr}
+  .admin-sidebar{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .form-row,.form-row-3{grid-template-columns:1fr}
+  .test-selector{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>DataMinds</h1>
+      <p>Admin Panel — Restricted Access</p>
+    </div>
+    <div class="form-group">
+      <label>Admin Password</label>
+      <input type="password" id="admin-pass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    </div>
+    <button class="login-btn" onclick="doAdminLogin()">🔐 Login to Admin Panel</button>
+    <div class="login-err" id="login-err">Wrong password. Try again.</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="admin-app">
+  <div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <div class="admin-sidebar">
+      <div class="sidebar-brand">
+        <h2>⚡ DataMinds</h2>
+        <p>Admin Panel v2.0</p>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <div class="nav-item active" onclick="showSection('analytics')">
+          <span class="nav-icon">📊</span> Analytics
+        </div>
+        <div class="nav-section">Content</div>
+        <div class="nav-item" onclick="showSection('questions')">
+          <span class="nav-icon">❓</span> Questions
+        </div>
+        <div class="nav-item" onclick="showSection('upload')">
+          <span class="nav-icon">📤</span> Bulk Upload
+        </div>
+        <div class="nav-section">Users</div>
+        <div class="nav-item" onclick="showSection('users')">
+          <span class="nav-icon">👥</span> All Users
+        </div>
+        <div class="nav-item" onclick="showSection('payments')">
+          <span class="nav-icon">💰</span> Payments
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="doLogout()">🚪 Logout</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="admin-main">
+
+      <!-- ANALYTICS -->
+      <div class="admin-section active" id="section-analytics">
+        <div class="page-header">
+          <h1>📊 Analytics Overview</h1>
+          <button class="btn btn-outline btn-sm" onclick="loadAnalytics()">🔄 Refresh</button>
+        </div>
+        <div class="page-content">
+          <div class="stats-row" id="analytics-stats">
+            <div class="stat-card"><div class="stat-icon si-orange">👥</div><div class="stat-val" id="stat-users">—</div><div class="stat-lbl">Total Users</div></div>
+            <div class="stat-card"><div class="stat-icon si-green">📝</div><div class="stat-val" id="stat-attempts">—</div><div class="stat-lbl">Test Attempts</div></div>
+            <div class="stat-card"><div class="stat-icon si-blue">🎯</div><div class="stat-val" id="stat-accuracy">—</div><div class="stat-lbl">Avg Accuracy</div></div>
+            <div class="stat-card"><div class="stat-icon si-yellow">💰</div><div class="stat-val" id="stat-revenue">—</div><div class="stat-lbl">Revenue (₹)</div></div>
+          </div>
+          <div class="admin-card">
+            <div class="card-header"><h3>📈 Test-wise Performance</h3></div>
+            <div class="card-body">
+              <table class="admin-table" id="test-stats-table">
+                <thead><tr><th>Test</th><th>Attempts</th><th>Avg Score</th><th>Avg Accuracy</th></tr></thead>
+                <tbody id="test-stats-body"><tr><td colspan="4" style="text-align:center;color:var(--text3)">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUESTIONS -->
+      <div class="admin-section" id="section-questions">
+        <div class="page-header">
+          <h1>❓ Questions Manager</h1>
+          <div style="display:flex;gap:8px;padding-bottom:20px">
+            <button class="btn btn-danger btn-sm" onclick="deleteTestQuestions()" id="del-test-btn" style="display:none">🗑️ Delete Entire Test</button>
+            <button class="btn btn-primary btn-sm" onclick="showSection('upload')">📤 Bulk Upload</button>
+          </div>
+        </div>
+        <div class="page-content">
+          <div class="admin-card">
+            <div class="card-header"><h3>Select Test</h3><span id="q-count-badge" style="font-size:12px;color:var(--text3)"></span></div>
+            <div class="card-body" style="padding-bottom:0">
+              <div class="test-selector" id="test-selector"></div>
+            </div>
+          </div>
+          <div class="admin-card" id="questions-card" style="display:none">
+            <div class="card-header">
+              <h3 id="questions-card-title">Questions</h3>
+              <button class="btn btn-primary btn-sm" onclick="openAddQuestion()">➕ Add Question</button>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="admin-table">
+                <thead><tr><th style="width:50px">No.</th><th>Question</th><th style="width:100px">Correct</th><th style="width:80px">Difficulty</th><th style="width:100px">Actions</th></tr></thead>
+                <tbody id="questions-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BULK UPLOAD -->
+      <div class="admin-section" id="section-upload">
+        <div class="page-header"><h1>📤 Bulk Upload Questions</h1></div>
+        <div class="page-content">
+          <div class="admin-card">
+            <div class="card-header"><h3>📋 Supported Format</h3></div>
+            <div class="card-body">
+              <div class="format-box">
+                <strong style="color:var(--text2)">JSON Format (questions.json):</strong><br><br>
+                <code>[</code><br>
+                <code>&nbsp;&nbsp;{</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"test_id": 21,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"question_no": 1,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"q": "Question text?",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"options": ["Option A", "Option B", "Option C", "Option D"],</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"correct": 1,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"explanation": "Explanation here.",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"topic": "Arrays",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"difficulty": "Easy"</code><br>
+                <code>&nbsp;&nbsp;},</code><br>
+                <code>&nbsp;&nbsp;{</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"test_id": 21,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"question_no": 2,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"q": "PYQ 5-option question?",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"options": ["A", "B", "C", "D", "None of the above"],</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"correct": 4,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"explanation": "Explanation.",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"topic": "General",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"difficulty": "Medium"</code><br>
+                <code>&nbsp;&nbsp;}</code><br>
+                <code>]</code><br><br>
+                <span style="color:var(--success)">✅ 4 options: ["A","B","C","D"] &nbsp;|&nbsp; 5 options: ["A","B","C","D","E"]</span><br>
+                <span style="color:var(--warning)">⚠️ correct: 0=A, 1=B, 2=C, 3=D, 4=E</span>
+              </div>
+              <div class="format-box" style="margin-top:12px">
+                <strong style="color:var(--text2)">Excel Format (.xlsx) — Column headers (row 1):</strong><br><br>
+                <code>test_id</code> | <code>question_no</code> | <code>q</code> | <code>option_a</code> | <code>option_b</code> | <code>option_c</code> | <code>option_d</code> | <code>option_e</code> | <code>correct</code> | <code>explanation</code> | <code>topic</code> | <code>difficulty</code><br><br>
+                <span style="color:var(--warning)">⚠️ correct: 0=A, 1=B, 2=C, 3=D, 4=E &nbsp;|&nbsp; option_e is optional — leave blank for 4-option questions</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="card-header"><h3>📁 Upload File</h3></div>
+            <div class="card-body">
+              <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+                <input type="file" id="file-input" accept=".json,.xlsx,.xls" onchange="handleFileSelect(event)">
+                <div class="upload-icon">📂</div>
+                <h3>Click to select or drag & drop</h3>
+                <p>Supports .json and .xlsx files</p>
+              </div>
+              <div id="upload-preview" style="display:none;margin-top:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                  <div>
+                    <strong id="upload-filename" style="color:var(--text)"></strong>
+                    <span id="upload-count" style="font-size:13px;color:var(--text3);margin-left:8px"></span>
+                  </div>
+                  <button class="btn btn-danger btn-sm" onclick="clearUpload()">✕ Clear</button>
+                </div>
+                <div id="upload-sample" style="font-size:12px;color:var(--text3);margin-bottom:16px"></div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button class="btn btn-success" onclick="doUpload(false)">✅ Upload (Skip Duplicates)</button>
+                  <button class="btn btn-warning" onclick="doUpload(true)">🔄 Upload (Replace Existing)</button>
+                </div>
+              </div>
+              <div id="upload-progress-wrap" style="display:none;margin-top:16px">
+                <div style="font-size:13px;color:var(--text2);margin-bottom:8px" id="upload-status">Uploading...</div>
+                <div class="upload-progress"><div class="upload-progress-fill" id="upload-prog" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div class="admin-section" id="section-users">
+        <div class="page-header">
+          <h1>👥 Users</h1>
+          <button class="btn btn-outline btn-sm" onclick="loadUsers()">🔄 Refresh</button>
+        </div>
+        <div class="page-content">
+          <div class="admin-card">
+            <div class="card-header">
+              <h3>All Registered Users</h3>
+              <input type="text" placeholder="🔍 Search users..." style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;width:200px" oninput="filterUsers(this.value)">
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="admin-table">
+                <thead><tr><th>Name</th><th>Email</th><th>State</th><th>Exam</th><th>Registered</th><th>Tests</th><th>Action</th></tr></thead>
+                <tbody id="users-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text3)">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div class="admin-section" id="section-payments">
+        <div class="page-header">
+          <h1>💰 Payments</h1>
+          <button class="btn btn-outline btn-sm" onclick="loadPayments()">🔄 Refresh</button>
+        </div>
+        <div class="page-content">
+          <div class="admin-card">
+            <div class="card-header"><h3>Payment History</h3></div>
+            <div class="card-body" style="padding:0">
+              <table class="admin-table">
+                <thead><tr><th>User</th><th>Test</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+                <tbody id="payments-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3)">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- admin-main -->
+  </div>
+</div>
+
+<!-- QUESTION MODAL -->
+<div class="modal-overlay" id="q-modal" style="display:none" onclick="if(event.target===this)closeQModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="q-modal-title">Add Question</h3>
+      <button class="modal-close" onclick="closeQModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Test ID</label>
+          <input type="number" id="q-test-id" min="1" max="20" placeholder="1-20">
+        </div>
+        <div class="form-group">
+          <label>Question No.</label>
+          <input type="number" id="q-no" min="1" max="20" placeholder="1-20">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Question Text</label>
+        <textarea id="q-text" placeholder="Enter the question..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Options <span style="font-size:11px;color:var(--text3)">(select correct answer)</span></label>
+        <div class="option-input-row">
+          <div class="option-label">A</div>
+          <input type="text" id="opt-0" placeholder="Option A">
+          <input type="radio" name="correct-opt" value="0" class="correct-radio" title="Correct">
+        </div>
+        <div class="option-input-row">
+          <div class="option-label">B</div>
+          <input type="text" id="opt-1" placeholder="Option B">
+          <input type="radio" name="correct-opt" value="1" class="correct-radio" title="Correct">
+        </div>
+        <div class="option-input-row">
+          <div class="option-label">C</div>
+          <input type="text" id="opt-2" placeholder="Option C">
+          <input type="radio" name="correct-opt" value="2" class="correct-radio" title="Correct">
+        </div>
+        <div class="option-input-row">
+          <div class="option-label">D</div>
+          <input type="text" id="opt-3" placeholder="Option D">
+          <input type="radio" name="correct-opt" value="3" class="correct-radio" title="Correct">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Topic</label>
+          <input type="text" id="q-topic" placeholder="e.g. Arrays">
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select id="q-difficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Explanation</label>
+        <textarea id="q-explanation" placeholder="Explain the correct answer..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeQModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuestion()" id="save-q-btn">💾 Save Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="admin-toast" id="admin-toast"></div>
+
+<!-- SheetJS for Excel parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
