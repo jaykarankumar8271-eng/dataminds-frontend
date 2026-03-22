@@ -8,7 +8,7 @@ let answers          = [];
 let skipped          = [];
 let timerInterval    = null;
 let timeLeft         = 0;
-const totalTime      = 20 * 60;
+let totalTime        = 20 * 60; // will be set dynamically per test
 let timeTaken        = 0;
 let currentFilter    = 'all';
 let currentSection   = 'topic';
@@ -46,6 +46,10 @@ async function openTestIntroWithDB(testId) {
     const dbQuestions = await loadDBQuestions(testId);
     if (dbQuestions && dbQuestions.length > 0) {
       test.questions = dbQuestions;
+      // Update totalQuestions to actual count from DB
+      if (!test.totalQuestions || test.totalQuestions !== dbQuestions.length) {
+        test.totalQuestions = dbQuestions.length;
+      }
       showToast(`✅ ${dbQuestions.length} questions loaded!`);
     } else {
       showToast('❌ No questions found for this test!', 'error');
@@ -363,7 +367,7 @@ function openTestIntro(testId) {
       </div>
       <div class="intro-rules">
         <h3>📋 Exam Instructions</h3>
-        <div class="rule-item"><div class="rule-dot"></div><span>20 MCQs from topic: <strong>${test.topic}</strong></span></div>
+        <div class="rule-item"><div class="rule-dot"></div><span>${test.totalQuestions || test.questions?.length || 20} MCQs from topic: <strong>${test.topic}</strong></span></div>
         <div class="rule-item"><div class="rule-dot"></div><span>Timer starts when you click 'Begin Test'</span></div>
         <div class="rule-item"><div class="rule-dot"></div><span>Each correct: <strong>+1 mark</strong>. No negative marking.</span></div>
         <div class="rule-item"><div class="rule-dot"></div><span>Based on <strong>BPSC TRE 1.0/2.0/3.0/4.0</strong> PYQ patterns</span></div>
@@ -389,6 +393,9 @@ function startTest(testId) {
   const test=ALL_TESTS.find(t=>t.id===testId);
   answers=new Array(test.questions.length).fill(-1);
   skipped=new Array(test.questions.length).fill(false);
+  // Set time dynamically based on test config
+  const _test = ALL_TESTS.find(t=>t.id===testId);
+  totalTime = (_test?.timeLimit || 20) * 60;
   timeLeft=totalTime; renderQuizScreen(); startTimer();
 }
 
