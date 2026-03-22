@@ -713,15 +713,16 @@ function setSidebarDiff(d) {
 function switchProSection(sec) {
   document.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
   document.getElementById('ctab-' + sec)?.classList.add('active');
+  proCurrentSection = sec;
   currentSection = sec;
 
-  if (sec !== 'topic') {
+  if (sec === 'full') {
     const grid = document.getElementById('pro-tests-grid');
     if (grid) grid.innerHTML = `
       <div class="coming-soon-pro">
-        <div class="cs-icon">${sec === 'full' ? '📋' : '🗂️'}</div>
-        <h3>${sec === 'full' ? 'Full Length Mock Tests' : 'Previous Year Questions'}</h3>
-        <p>Coming soon! We're preparing high-quality ${sec === 'full' ? 'full-length mock tests' : 'PYQ papers'} for you.</p>
+        <div class="cs-icon">📋</div>
+        <h3>Full Length Mock Tests</h3>
+        <p>Coming soon! We're preparing high-quality full-length mock tests for you.</p>
         <button class="btn-primary-sm" onclick="switchProSection('topic')">← Back to Topic Tests</button>
       </div>`;
     return;
@@ -730,6 +731,7 @@ function switchProSection(sec) {
 }
 
 let proSearchQuery = '';
+let proCurrentSection = 'topic';
 function proSearch(q) { proSearchQuery = q; renderProTests(); }
 
 function renderProTests() {
@@ -740,7 +742,12 @@ function renderProTests() {
   const results   = loadResults();
   const bookmarks = getBookmarks();
 
-  let list = ALL_LIST.filter(t => {
+  // Topic-wise: T1-T20, PYQ: T100+
+  const BASE = proCurrentSection === 'pyq'
+    ? ALL_TESTS.filter(t => t.id >= 100)
+    : ALL_TESTS.filter(t => t.id < 100);
+
+  let list = BASE.filter(t => {
     const attempted  = !!results[t.id];
     const bookmarked = bookmarks.includes(t.id);
     const diff       = TEST_DIFFICULTY[t.id] || 'medium';
