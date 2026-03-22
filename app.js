@@ -209,7 +209,7 @@ function renderTests(filter='all') {
     const res        = results[test.id];
     const attempted  = !!res;
     const score      = attempted ? res.score : 0;
-    const total      = test.questions.length;
+    const total      = test.totalQuestions || test.questions.length;
     const pct        = attempted ? Math.round((score/total)*100) : 0;
     const diff       = TEST_DIFFICULTY[test.id] || 'medium';
     const premium    = isPremium(test.id);
@@ -240,7 +240,7 @@ function renderTests(filter='all') {
       <div class="card-tags">
         <span class="diff-badge" style="background:${diffCfg.bg};color:${diffCfg.color}">${diffCfg.label}</span>
         <span class="meta-item"><span class="meta-icon">❓</span>${total} Qs</span>
-        <span class="meta-item"><span class="meta-icon">⏱️</span>20 Min</span>
+        <span class="meta-item"><span class="meta-icon">⏱️</span>${test.timeLimit||20} Min</span>
         <span class="meta-item"><span class="meta-icon">👥</span>${attempts.toLocaleString()}</span>
         <span class="meta-item"><span class="meta-icon">⭐</span>${rating}</span>
       </div>
@@ -360,10 +360,10 @@ function openTestIntro(testId) {
     <div class="intro-body">
       ${prev?`<div class="prev-attempt-banner"><span>📊 Previous:</span><strong>${prev.score}/${prev.total} (${Math.round(prev.score/prev.total*100)}%)</strong><span style="color:var(--text-muted)">· ${prev.date}</span></div>`:''}
       <div class="intro-stats-row">
-        <div class="istat"><div class="istat-val">20</div><div class="istat-lbl">Questions</div></div>
-        <div class="istat"><div class="istat-val">20</div><div class="istat-lbl">Minutes</div></div>
-        <div class="istat"><div class="istat-val">+1</div><div class="istat-lbl">Per Correct</div></div>
-        <div class="istat"><div class="istat-val">0</div><div class="istat-lbl">Negative</div></div>
+        <div class="istat"><div class="istat-val">${test.totalQuestions||test.questions?.length||20}</div><div class="istat-lbl">Questions</div></div>
+        <div class="istat"><div class="istat-val">${test.timeLimit||20}</div><div class="istat-lbl">Minutes</div></div>
+        <div class="istat"><div class="istat-val">+${test.perCorrect||1}</div><div class="istat-lbl">Per Correct</div></div>
+        <div class="istat"><div class="istat-val">${test.negative||0}</div><div class="istat-lbl">Negative</div></div>
       </div>
       <div class="intro-rules">
         <h3>📋 Exam Instructions</h3>
@@ -770,7 +770,7 @@ function renderProTests() {
     const res        = results[test.id];
     const attempted  = !!res;
     const score      = attempted ? res.score : 0;
-    const total      = test.questions.length;
+    const total      = test.totalQuestions || test.questions.length;
     const pct        = attempted ? Math.round((score / total) * 100) : 0;
     const diff       = TEST_DIFFICULTY[test.id] || 'medium';
     const premium    = isPremium(test.id);
