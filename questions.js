@@ -1617,6 +1617,22 @@ const ALL_TESTS = [
   ]
 }
 
+  ,{
+  id: 201,
+  title: "BPSC PGT 2023 — Full Paper PYQ (Hindi)",
+  subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2023",
+  icon: "📖",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC PGT 2023",
+  totalQuestions: 120,
+  timeLimit: 120,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+
 ,{
   id: 101,
   title: "BPSC TRE 1.0 — Full Paper PYQ",
