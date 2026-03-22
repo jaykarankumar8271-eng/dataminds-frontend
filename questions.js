@@ -1634,7 +1634,23 @@ const ALL_TESTS = [
 }
 
 ,{
-  id: 101,
+  id: 201,
+  title: "BPSC TRE 2.0 — Full Paper PYQ (Hindi)",
+  subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2024",
+  icon: "📖",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC PGT 2024",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+  
+,{
+  id: 202,
   title: "BPSC TRE 1.0 — Full Paper PYQ",
   subtitle: "TPYQ1 | Previous Year 2023",
   icon: "🎯",
@@ -1642,6 +1658,22 @@ const ALL_TESTS = [
   difficulty: "Medium",
   examType: "Full Mock",
   tag: "BPSC TRE 1.0",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+
+  ,{
+  id: 102,
+  title: "BPSC TRE 2.0 — Full Paper PYQ",
+  subtitle: "TPYQ1 | Previous Year 2024",
+  icon: "🎯",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC TRE 2.0",
   totalQuestions: 150,
   timeLimit: 150,
   perCorrect: 1,
