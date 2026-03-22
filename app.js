@@ -196,7 +196,7 @@ function setPremiumFilter(val) { premiumFilter=val; renderAdvancedFilters(); ren
 function renderTests(filter='all', testList=null) {
   const ALL_LIST = testList || ALL_TESTS;
   currentFilter = filter;
-  if (currentSection !== 'topic') return;
+  if (currentSection !== 'topic' && !testList) return;
   const results   = loadResults();
   const grid      = document.getElementById('tests-grid');
   if (!grid) return;
