@@ -111,3 +111,7 @@ function isPremium(testId) { return PREMIUM_TEST_IDS.includes(testId); }
 TEST_DIFFICULTY[101] = 'medium';
 TEST_RATINGS[101]    = 4.9;
 TEST_ATTEMPT_COUNTS[101] = 0;
+
+TEST_DIFFICULTY[201] = 'medium';
+TEST_RATINGS[201]    = 4.9;
+TEST_ATTEMPT_COUNTS[201] = 0;
