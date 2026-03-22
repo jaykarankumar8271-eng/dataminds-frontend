@@ -1619,7 +1619,7 @@ const ALL_TESTS = [
 
   ,{
   id: 201,
-  title: "BPSC PGT 2023 — Full Paper PYQ (Hindi)",
+  title: "BPSC TRE 1.0 — Full Paper PYQ (Hindi)",
   subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2023",
   icon: "📖",
   topic: "Mixed",
