@@ -312,7 +312,7 @@ async function initiatePayment(testId) {
   const test = ALL_TESTS.find(t=>t.id===testId);
   showToast('⏳ Initializing payment...');
   try {
-    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:''}/api/payment/create-order`,{
+    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:'https://dataminds-backend.onrender.com'}/api/payment/create-order`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${getToken()}`},
       body:JSON.stringify({test_id:testId,amount:9900})
     });
@@ -338,7 +338,7 @@ async function initiatePayment(testId) {
 
 async function verifyPayment(response, testId) {
   try {
-    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:''}/api/payment/verify`,{
+    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:'https://dataminds-backend.onrender.com'}/api/payment/verify`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${getToken()}`},
       body:JSON.stringify({...response,test_id:testId})
     });
