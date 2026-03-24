@@ -1,4 +1,4 @@
-# DataMinds — Dynamic Web App
+# SarkariMockTest — Dynamic Web App
 ## BPSC TRE 4.0 + Bihar STET | Data Structure Test Series
 
 ---
@@ -6,7 +6,7 @@
 ## 📁 Files
 
 ```
-DataMinds/
+SarkariMockTest/
 ├── index.html      ← Main entry point
 ├── style.css       ← All styles (dark theme + responsive)
 ├── auth.css        ← Auth pages + layout styles
@@ -59,7 +59,7 @@ DataMinds/
 
 ### Option 1: Netlify Drop (Easiest — 30 seconds)
 1. Go to **netlify.com/drop**
-2. Drag & drop the **DataMinds** folder
+2. Drag & drop the **SarkariMockTest** folder
 3. Get a live URL instantly (e.g., `dataminds.netlify.app`)
 4. Custom domain: Buy domain + connect in Netlify settings
 
@@ -114,4 +114,4 @@ Replace `DB.get/set` functions in `auth.js` with `fetch()` API calls to your ser
 
 ---
 
-*DataMinds — Built for BPSC & Bihar STET Aspirants*
+*SarkariMockTest — Built for BPSC & Bihar STET Aspirants*

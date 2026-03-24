@@ -1,5 +1,5 @@
 // ============================================================
-// DataMinds Test Series - Data Structures
+// SarkariMockTest Test Series - Data Structures
 // Based on BPSC TRE 1.0/2.0/3.0/4.0 + Bihar STET CS PYQ Analysis
 // 20 Tests × 20 Questions = 400 Questions Total
 // ============================================================
@@ -1615,6 +1615,101 @@ const ALL_TESTS = [
     {q:"A degenerate (pathological) case for Quick Sort is when:",opts:["Array is random","Pivot always divides array in equal halves","Array is already sorted (pivot always minimum or maximum)","Array has all equal elements"],ans:2,tag:"Sorting",exp:"Sorted input with naive (first/last element) pivot selection → O(n²). Use random pivot or median-of-3 to avoid."},
     {q:"Which of the following best describes the relationship: Stack is to LIFO as Queue is to:",opts:["LIFO","FIFO","FILO","LILO"],ans:1,tag:"Basics",exp:"Stack : LIFO :: Queue : FIFO. Queue is First In First Out — first element inserted is first removed."}
   ]
+}
+
+  ,{
+  id: 201,
+  title: "BPSC TRE 1.0 — Full Paper PYQ (Hindi)",
+  subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2023",
+  icon: "📖",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC PGT 2023",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+
+  ,{
+  id: 101,
+  title: "BPSC TRE 1.0 — Full Paper PYQ",
+  subtitle: "TPYQ1 | Previous Year 2023",
+  icon: "🎯",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC TRE 1.0",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+  
+,{
+  id: 202,
+  title: "BPSC TRE 2.0 — Full Paper PYQ (Hindi)",
+  subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2024",
+  icon: "📖",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC PGT 2024",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+  
+  ,{
+  id: 102,
+  title: "BPSC TRE 2.0 — Full Paper PYQ",
+  subtitle: "TPYQ1 | Previous Year 2024",
+  icon: "🎯",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC TRE 2.0",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+  ,{
+  id: 203,
+  title: "BPSC TRE 3.0 — Full Paper PYQ (Hindi)",
+  subtitle: "TPYQH1 | विगत वर्ष प्रश्न 2024",
+  icon: "📖",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC PGT 2024",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
+}
+  
+  ,{
+  id: 103,
+  title: "BPSC TRE 3.0 — Full Paper PYQ",
+  subtitle: "TPYQ1 | Previous Year 2024",
+  icon: "🎯",
+  topic: "Mixed",
+  difficulty: "Medium",
+  examType: "Full Mock",
+  tag: "BPSC TRE 3.0",
+  totalQuestions: 150,
+  timeLimit: 150,
+  perCorrect: 1,
+  negative: 0,
+  questions: []
 }
 
 ];
