@@ -66,6 +66,15 @@ async function handleStartTest(testId) {
   const test = ALL_TESTS.find(t => t.id === testId);
   if (!test) { showToast('❌ Test not found!', 'error'); return; }
   
+  // Check modal elements exist
+  const modal = document.getElementById('modal-overlay');
+  const content = document.getElementById('modal-content');
+  if (!modal || !content) {
+    console.error('Modal elements not found!');
+    showToast('❌ Page error — please refresh!', 'error');
+    return;
+  }
+
   // If test has local questions — open directly
   if (test.questions && test.questions.length > 0) {
     openTestIntro(testId);
@@ -954,7 +963,7 @@ function renderProTests() {
         </div>
         ${premium && !unlocked
           ? `<button class="tcp-btn tcp-btn-unlock" onclick="openPaymentModal(${test.id})">🔓 Unlock ₹99</button>`
-          : `<button class="tcp-btn ${attempted ? 'tcp-btn-retry' : 'tcp-btn-start'}" onclick="(typeof openTestIntroWithDB!=='undefined'&&(!ALL_TESTS.find(t=>t.id===${test.id})?.questions?.length)?openTestIntroWithDB:openTestIntro)(${test.id})">
+          : `<button class="tcp-btn ${attempted ? 'tcp-btn-retry' : 'tcp-btn-start'}" onclick="handleStartTest(${test.id})">
               ${attempted ? '↩ Re-Attempt' : '▶ Start Test'}
             </button>`}
       </div>
