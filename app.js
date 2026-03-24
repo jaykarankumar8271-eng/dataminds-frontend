@@ -18,16 +18,10 @@ let searchQuery      = '';
 let difficultyFilter = 'all';
 let premiumFilter    = 'all';
 
-// ── LOAD DB QUESTIONS — with retry for Render cold start ──
-const _API = typeof API_URL !== 'undefined' ? API_URL : 'https://dataminds-backend.onrender.com';
-
-async function loadDBQuestions(testId, attempt=1) {
+// ── LOAD DB QUESTIONS for tests with empty questions array ──
+async function loadDBQuestions(testId) {
   try {
-    showToast(attempt===1 ? '⏳ Questions load ho rahi hain...' : `⏳ Server wake ho raha hai... (${attempt}/3)`);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout
-    const res = await fetch(`${_API}/api/questions/${testId}`, { signal: controller.signal });
-    clearTimeout(timeout);
+    const res = await fetch(`${typeof API_URL !== 'undefined' ? API_URL : 'https://dataminds-backend.onrender.com'}/api/questions/${testId}`);
     const data = await res.json();
     if (data.success && data.questions && data.questions.length > 0) {
       return data.questions.map(q => ({
@@ -38,22 +32,9 @@ async function loadDBQuestions(testId, attempt=1) {
         exp: q.explanation || ''
       }));
     }
-    return null;
-  } catch(e) {
-    console.warn(`Attempt ${attempt} failed:`, e.message);
-    if (attempt < 3) {
-      // Retry after 3 seconds
-      await new Promise(r => setTimeout(r, 3000));
-      return loadDBQuestions(testId, attempt + 1);
-    }
-    return null;
-  }
+  } catch(e) { console.warn('DB questions load failed:', e); }
+  return null;
 }
-
-// Ping backend on page load to wake it up early
-setTimeout(() => {
-  fetch(`${_API}/health`).catch(()=>{});
-}, 1000);
 
 // Override openTestIntro to load DB questions if needed
 const _origOpenTestIntro = typeof openTestIntro !== 'undefined' ? openTestIntro : null;
@@ -77,44 +58,6 @@ async function openTestIntroWithDB(testId) {
     }
   }
   openTestIntro(testId);
-}
-
-
-// Smart test opener — handles both local questions and DB questions
-async function handleStartTest(testId) {
-  const test = ALL_TESTS.find(t => t.id === testId);
-  if (!test) { showToast('❌ Test not found!', 'error'); return; }
-  
-  // Check modal elements exist
-  const modal = document.getElementById('modal-overlay');
-  const content = document.getElementById('modal-content');
-  if (!modal || !content) {
-    console.error('Modal elements not found!');
-    showToast('❌ Page error — please refresh!', 'error');
-    return;
-  }
-
-  // If test has local questions — open directly
-  if (test.questions && test.questions.length > 0) {
-    openTestIntro(testId);
-    return;
-  }
-  
-  // PYQ / DB-based test — try loading from backend
-  try {
-    const dbQs = await loadDBQuestions(testId);
-    if (dbQs && dbQs.length > 0) {
-      test.questions = dbQs;
-      test.totalQuestions = dbQs.length;
-      showToast('✅ ' + dbQs.length + ' questions loaded!');
-      openTestIntro(testId);
-    } else {
-      // No questions in DB either — show friendly message
-      showToast('🔜 Ye test jald aayega! Questions add ho rahe hain.', 'info');
-    }
-  } catch(e) {
-    showToast('🔜 Ye test jald aayega! Backend se connect nahi ho pa raha.', 'info');
-  }
 }
 
 function loadResults() {
@@ -315,7 +258,7 @@ function renderTests(filter='all') {
         </div>
         ${premium&&!unlocked
           ?`<button class="btn-unlock" onclick="openPaymentModal(${test.id})">🔓 Unlock ₹99</button>`
-          :`<button class="btn-${attempted?'reattempt':'start'}" onclick="handleStartTest(${test.id})">${attempted?'↩ Re-Attempt':'▶ Start Test'}</button>`}
+          :`<button class="btn-${attempted?'reattempt':'start'}" onclick="(typeof openTestIntroWithDB!=='undefined'&&(!ALL_TESTS.find(t=>t.id===${test.id})?.questions?.length)?openTestIntroWithDB:openTestIntro)(${test.id})">${attempted?'↩ Re-Attempt':'▶ Start Test'}</button>`}
       </div>`;
     grid.appendChild(card);
   });
@@ -447,7 +390,6 @@ function openTestIntro(testId) {
 }
 
 function closeModal() {
-  document.getElementById('modal-overlay')?.classList.remove('quiz-active');
   document.getElementById('modal-overlay').classList.add('hidden');
   document.body.style.overflow='';
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
@@ -468,139 +410,94 @@ function startTest(testId) {
 function renderQuizScreen() {
   const test=ALL_TESTS.find(t=>t.id===currentTestId), q=test.questions[currentQIndex], n=test.questions.length;
   const content=document.getElementById('modal-content');
-
-  // Fullscreen modal
-  document.getElementById('modal-overlay')?.classList.add('quiz-active');
-
-  const mins=Math.floor(timeLeft/60).toString().padStart(3,'0');
-  const secs=(timeLeft%60).toString().padStart(2,'0');
-  const answered=answers.filter(a=>a!=-1).length;
-
-  // Build palette boxes
+  const timerClass=timeLeft<120?'danger':timeLeft<300?'warning':'';
+  const mins=Math.floor(timeLeft/60).toString().padStart(2,'0'), secs=(timeLeft%60).toString().padStart(2,'0');
+  const answered=answers.filter(a=>a!==-1).length;
   const palette=test.questions.map((_,i)=>{
-    let cls='pbox';
-    if(i===currentQIndex)      cls+=' current';
-    else if(answers[i]!==-1)   cls+=' answered';
-    else if(skipped[i])        cls+=' marked';
-    return `<div class="${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;
+    let cls='';
+    if(i===currentQIndex) cls='q-current';
+    else if(answers[i]!==-1) cls='q-answered';
+    else if(skipped[i]) cls='q-skipped';
+    return `<div class="q-dot ${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;
   }).join('');
-
-  // Build options — detect long options
-  const anyLong = q.opts.some(o=>o.length>40);
-  const optsHTML = q.opts.map((opt,i)=>{
-    const sel = answers[currentQIndex]===i;
-    return `<div class="opt${sel?' selected':''}" onclick="selectOption(${i})">
-      <div class="opt-lbl">${String.fromCharCode(65+i)}</div>
-      <div class="opt-text">${opt}</div>
-    </div>`;
-  }).join('');
-
-  const optsWrap = anyLong
-    ? `<div class="opts" id="opts">${optsHTML}</div>`
-    : `<div class="opts opts-grid" id="opts">${optsHTML}</div>`;
-
-  const timerClass = timeLeft<300 ? (timeLeft<120?'t-warn':'t-warn') : '';
-  const dotClass   = timeLeft<300 ? 't-dot-warn' : '';
-  const negBadge   = test.negative
-    ? `+${test.perCorrect||1} सही &nbsp;·&nbsp; −${test.negative} गलत`
-    : `+${test.perCorrect||1} सही`;
-
+  const is5Opts = q.opts.length === 5;
+  const optionsHTML=q.opts.map((opt,i)=>`
+    <div class="option-item ${answers[currentQIndex]===i?'selected':''} ${is5Opts?'opt-5':'opt-4'}" onclick="selectOption(${i})">
+      <div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div>
+    </div>`).join('');
+  const isLast=currentQIndex===n-1;
+  // Design-C Quiz UI
+  const anyLong = q.opts.some(o => o.length > 40);
   content.innerHTML=`<div class="quiz-screen">
-
-    <!-- HEADER -->
-    <header>
-      <div class="h-left">
-        <div class="h-icon">${(test.icon||'📝')}</div>
-        <div>
-          <div class="h-title">${test.title}</div>
-          <div class="h-sub">${q.tag||'General'}</div>
-        </div>
+    <header class="quiz-topbar">
+      <div class="quiz-title-wrap"><div class="quiz-title">${test.icon} ${test.title}</div></div>
+      <div class="quiz-topbar-center">
+        <div class="quiz-prog-lbl">${currentQIndex+1} / ${n}</div>
+        <div class="quiz-prog-wrap"><div class="quiz-prog-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
       </div>
-      <div class="h-center">
-        <div class="h-prog-lbl" id="prog-lbl">${currentQIndex+1} / ${n}</div>
-        <div class="h-prog-wrap"><div class="h-prog-fill" id="prog-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
-      </div>
-      <div class="h-right">
-        <div class="timer">
-          <div class="t-dot ${dotClass}" id="t-dot"></div>
-          <div class="t-val ${timerClass}" id="t-val">${mins}:${secs}</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="quiz-timer ${timerClass}" id="quiz-timer">
+          <div class="timer-icon"></div>
+          <span id="timer-display">${mins}:${secs}</span>
         </div>
-        <button class="sub-btn" onclick="confirmSubmit()">Submit Test</button>
+        <button class="btn-submit-test" onclick="confirmSubmit()">Submit Test</button>
       </div>
     </header>
-
-    <!-- BODY -->
-    <div class="body-wrap">
-
-      <!-- MAIN COLUMN -->
-      <div class="main-wrap">
-        <div class="main-scroll">
-          <div class="q-meta">
-            <div class="q-badge" id="q-badge">Q${currentQIndex+1} / ${n}</div>
-            <div class="q-cat" id="q-cat">${q.tag||'General'}</div>
-            <div class="q-marks">${negBadge}</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
+    <div class="mobile-palette-bar">
+      <span class="q-number-m">Q${currentQIndex+1}/${n}</span>
+      <button class="mobile-palette-toggle" onclick="toggleMobilePalette()">☰ Palette (${answered}/${n})</button>
+    </div>
+    <div class="quiz-body">
+      <div class="quiz-main">
+        <div class="quiz-main-scroll">
+          <div class="question-header">
+            <div class="q-number">Q${currentQIndex+1} / ${n}</div>
+            <div class="q-tag">${q.tag||'General'}</div>
+            ${test.negative?`<div class="q-marks-badge">+${test.perCorrect||1} सही &nbsp;·&nbsp; −${test.negative} गलत</div>`:''}
           </div>
-          <div class="q-card">
-            <div class="q-num">प्रश्न ${String(currentQIndex+1).padStart(3,'0')}</div>
-            <div class="q-text" id="q-text">${q.q}</div>
+          <div class="question-card">
+            <div class="q-num-label">प्रश्न ${String(currentQIndex+1).padStart(3,'0')}</div>
+            <div class="question-text">${q.q}</div>
           </div>
-          ${optsWrap}
+          <div class="${anyLong?'options-list':'opts-grid'}" id="options-list">${optionsHTML}</div>
         </div>
-
-        <!-- BOTTOM NAV -->
-        <div class="bottom-nav">
-          <button class="nav-btn nav-prev" id="btn-prev" onclick="prevQuestion()" ${currentQIndex===0?'disabled':''}>← पिछला</button>
-          <div class="nav-center" id="nav-qnum">${currentQIndex+1} / ${n}</div>
-          <button class="nav-btn nav-next" id="btn-next" onclick="${currentQIndex===n-1?'confirmSubmit()':'nextQuestion()'}">${currentQIndex===n-1?'Submit ✓':'अगला →'}</button>
+        <div class="quiz-footer">
+          <div class="quiz-footer-btns">
+            ${currentQIndex>0?`<button class="btn-cancel" onclick="prevQuestion()">← पिछला</button>`:''}
+            <div class="footer-q-num">${currentQIndex+1} / ${n}</div>
+            <button class="btn-skip" onclick="skipQuestion()">बाद में ⚑</button>
+            ${isLast?`<button class="btn-next" onclick="confirmSubmit()">Submit ✓</button>`:`<button class="btn-next" onclick="nextQuestion()">अगला →</button>`}
+          </div>
         </div>
       </div>
-
-      <!-- SIDEBAR -->
-      <aside>
-        <div class="s-title">Question Palette</div>
-        <div class="stats-row">
-          <div class="stat stat-ans"><span class="stat-n" id="s-ans">${answered}</span><span class="stat-l">Done</span></div>
-          <div class="stat stat-rem"><span class="stat-n" id="s-rem">${n-answered}</span><span class="stat-l">Left</span></div>
-          <div class="stat stat-mrk"><span class="stat-n" id="s-mrk">${skipped.filter(Boolean).length}</span><span class="stat-l">Marked</span></div>
+      <div class="quiz-sidebar" id="quiz-sidebar">
+        <div class="sidebar-header-row">
+          <div class="sidebar-title">Question Palette</div>
+          <button class="sidebar-close-mobile" onclick="toggleMobilePalette()">✕</button>
         </div>
-        <div class="legend">
-          <div class="leg-item"><div class="leg-dot" style="background:linear-gradient(135deg,var(--violet),var(--pink))"></div>Current</div>
-          <div class="leg-item"><div class="leg-dot" style="background:var(--greenbg);border:1px solid var(--greenbdr)"></div>Answered</div>
-          <div class="leg-item"><div class="leg-dot" style="background:var(--amberbg);border:1px solid var(--amberbdr)"></div>Marked</div>
-          <div class="leg-item"><div class="leg-dot" style="background:var(--glass);border:1px solid var(--gbdr)"></div>Unattempted</div>
+        <div class="sidebar-stats">
+          <div class="sstat sstat-ans"><span class="sstat-n" id="s-ans">${answered}</span><span class="sstat-l">Done</span></div>
+          <div class="sstat sstat-rem"><span class="sstat-n" id="s-rem">${n-answered}</span><span class="sstat-l">Left</span></div>
+          <div class="sstat sstat-mrk"><span class="sstat-n" id="s-mrk">${skipped.filter(Boolean).length}</span><span class="sstat-l">Skipped</span></div>
         </div>
-        <div class="pal-scroll"><div class="pal-inner" id="palette">${palette}</div></div>
-        <div class="side-act-row">
-          <button class="side-act-btn side-clear" onclick="clearCurrentAnswer()">✕ उत्तर हटाएं</button>
-          <button class="side-act-btn side-mark" onclick="markQuestion()">⚑ बाद में देखें</button>
+        <div class="sidebar-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#a855f7,#ec4899)"></div>Current</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3)"></div>Answered</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)"></div>Skipped</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)"></div>Unattempted</div>
         </div>
-      </aside>
-
-    </div><!-- /body-wrap -->
-
-    <!-- MOBILE FAB -->
-    <button class="pal-toggle" onclick="openPalSheet()" aria-label="Palette">☰</button>
-    <div class="pal-sheet-overlay" id="sheet-overlay" onclick="closePalSheet()"></div>
-    <div class="pal-sheet" id="pal-sheet">
-      <div class="pal-handle"></div>
-      <div class="pal-sheet-head">
-        <span class="pal-sheet-title">Question Palette</span>
-        <button class="pal-sheet-close" onclick="closePalSheet()">×</button>
-      </div>
-      <div class="pal-sheet-stats">
-        <div class="pss pss-ans"><span class="pss-n" id="ms-ans">${answered}</span><span class="pss-l">Done</span></div>
-        <div class="pss pss-rem"><span class="pss-n" id="ms-rem">${n-answered}</span><span class="pss-l">Left</span></div>
-        <div class="pss pss-mrk"><span class="pss-n" id="ms-mrk">${skipped.filter(Boolean).length}</span><span class="pss-l">Marked</span></div>
-      </div>
-      <div class="pal-sheet-grid" id="sheet-palette">${palette}</div>
-      <div class="pal-sheet-acts">
-        <button class="psa psa-clear" onclick="clearCurrentAnswer();closePalSheet()">✕ उत्तर हटाएं</button>
-        <button class="psa psa-mark" onclick="markQuestion();closePalSheet()">⚑ बाद में देखें</button>
+        <div class="q-palette" id="quiz-palette">${palette}</div>
+        <div class="sidebar-submit-section">
+          <div class="answered-count">Answered: <strong style="color:#4ade80">${answered}</strong> / ${n}</div>
+          <button class="btn-submit-test" onclick="confirmSubmit()">✓ Submit Test</button>
+          <button class="btn-clear-ans" onclick="clearCurrentAnswer()">✕ उत्तर हटाएं</button>
+        </div>
       </div>
     </div>
-
   </div>`;
 }
+
 function toggleMobilePalette(){const s=document.getElementById('quiz-sidebar');if(s)s.classList.toggle('palette-open');}
 
 function selectOption(optIdx){
@@ -610,13 +507,14 @@ function selectOption(optIdx){
   const optsList=document.getElementById('options-list');
   if(optsList) {
     const is5=q.opts.length===5;
-    optsList.innerHTML=q.opts.map((opt,i)=>`<div class="opt${answers[currentQIndex]===i?' selected':''}" onclick="selectOption(${i})"><div class="opt-lbl">${String.fromCharCode(65+i)}</div><div class="opt-text">${opt}</div></div>`).join('');
+    optsList.innerHTML=q.opts.map((opt,i)=>`<div class="option-item ${answers[currentQIndex]===i?'selected':''} ${is5?'opt-5':'opt-4'}" onclick="selectOption(${i})"><div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div></div>`).join('');
   }
   const palette=document.querySelector('.q-palette');
-  if(palette) palette.innerHTML=test.questions.map((_,i)=>{let cls='pbox';if(i===currentQIndex)cls+=' current';else if(answers[i]!==-1)cls+=' answered';else if(skipped[i])cls+=' marked';return `<div class="${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;}).join('');
+  if(palette) palette.innerHTML=test.questions.map((_,i)=>{let cls='';if(i===currentQIndex)cls='q-current';else if(answers[i]!==-1)cls='q-answered';else if(skipped[i])cls='q-skipped';return `<div class="q-dot ${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;}).join('');
   const ac=document.querySelector('.answered-count');if(ac)ac.innerHTML=`Answered: <strong style="color:#4ade80">${answered}</strong> / ${n}`;
   const mb=document.querySelector('.mobile-palette-toggle');if(mb)mb.textContent=`☰ Palette (${answered}/${n})`;
-  const sa=document.getElementById('s-ans');if(sa)sa.textContent=answered;const sr=document.getElementById('s-rem');if(sr)sr.textContent=n-answered;
+  const sa=document.getElementById('s-ans');if(sa)sa.textContent=answered;
+  const sr=document.getElementById('s-rem');if(sr)sr.textContent=n-answered;
 }
 
 function nextQuestion(){const test=ALL_TESTS.find(t=>t.id===currentTestId);if(currentQIndex<test.questions.length-1){currentQIndex++;renderQuizScreen();}}
@@ -641,20 +539,12 @@ function startTimer(){
   timerInterval=setInterval(()=>{
     timeLeft--;
     const el=document.getElementById('timer-display'),wrap=document.getElementById('quiz-timer');
-    if(el){
-      const m=Math.floor(timeLeft/60).toString().padStart(3,'0');
-      const s=(timeLeft%60).toString().padStart(2,'0');
-      el.textContent=`${m}:${s}`;
-      const dot=document.getElementById('t-dot');
-      if(timeLeft<300){el.classList.add('t-warn');if(dot)dot.classList.add('t-dot-warn');}
-      else{el.classList.remove('t-warn');if(dot)dot.classList.remove('t-dot-warn');}
-    }
+    if(el){el.textContent=`${Math.floor(timeLeft/60).toString().padStart(2,'0')}:${(timeLeft%60).toString().padStart(2,'0')}`;if(wrap)wrap.className='quiz-timer'+(timeLeft<120?' danger':timeLeft<300?' warning':'');}
     if(timeLeft<=0){clearInterval(timerInterval);submitTest(true);}
   },1000);
 }
 
 function submitTest(autoSubmit=false){
-  document.getElementById('modal-overlay')?.classList.remove('quiz-active');
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
   timeTaken=totalTime-timeLeft;
   const test=ALL_TESTS.find(t=>t.id===currentTestId);
@@ -981,7 +871,7 @@ function renderProTests() {
         </div>
         ${premium && !unlocked
           ? `<button class="tcp-btn tcp-btn-unlock" onclick="openPaymentModal(${test.id})">🔓 Unlock ₹99</button>`
-          : `<button class="tcp-btn ${attempted ? 'tcp-btn-retry' : 'tcp-btn-start'}" onclick="handleStartTest(${test.id})">
+          : `<button class="tcp-btn ${attempted ? 'tcp-btn-retry' : 'tcp-btn-start'}" onclick="(typeof openTestIntroWithDB!=='undefined'&&(!ALL_TESTS.find(t=>t.id===${test.id})?.questions?.length)?openTestIntroWithDB:openTestIntro)(${test.id})">
               ${attempted ? '↩ Re-Attempt' : '▶ Start Test'}
             </button>`}
       </div>
@@ -1028,7 +918,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 100);
 });
-
-function openPalSheet(){document.getElementById('sheet-overlay')?.classList.add('open');document.getElementById('pal-sheet')?.classList.add('open');}
-function closePalSheet(){document.getElementById('sheet-overlay')?.classList.remove('open');document.getElementById('pal-sheet')?.classList.remove('open');}
-function markQuestion(){if(currentTestId===null)return;skipped[currentQIndex]=!skipped[currentQIndex];renderQuizScreen();}

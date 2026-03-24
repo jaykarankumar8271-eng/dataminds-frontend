@@ -269,7 +269,7 @@ document.addEventListener('click',(e)=>{ if(!e.target.closest('#user-menu-trigge
 function toggleMobileMenu() { document.getElementById('mobile-nav').classList.toggle('open'); document.getElementById('hamburger-btn').classList.toggle('open'); }
 function togglePwd(inputId,btn) { const input=document.getElementById(inputId); if(input.type==='password'){input.type='text';btn.textContent='🙈';}else{input.type='password';btn.textContent='👁';} }
 let toastTimer;
-function showToast(msg,typeOrDuration=3000) { const t=document.getElementById('toast-notification'); if(!t)return; t.textContent=msg; t.className='toast-notification show'; if(typeof typeOrDuration==='string'){t.style.background=typeOrDuration==='error'?'#c00':'';} clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3000); }
+function showToast(msg,duration=3000) { const t=document.getElementById('toast-notification'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),duration); }
 function showConfirm(title,msg,onConfirm) {
   const overlay=document.createElement('div'); overlay.className='confirm-overlay';
   overlay.innerHTML=`<div class="confirm-box"><h3>${title}</h3><p>${msg}</p><div class="confirm-btns"><button class="btn-outline-sm" onclick="this.closest('.confirm-overlay').remove()">Cancel</button><button class="btn-danger-sm" id="confirm-yes-btn">Yes, Delete</button></div></div>`;
