@@ -760,34 +760,140 @@ function submitTest(autoSubmit=false){
 function renderResultScreen(test,score,wrong,skippedParam,accuracy,rank,totalStudents,percentile){
   const overlay = document.getElementById('modal-overlay');
   const content = document.getElementById('modal-content');
-  if (overlay) overlay.classList.remove('quiz-20-active');
-  if (content) content.classList.remove('quiz-20-active');
+  
+  const is20 = test.questions.length === 20;
+
+  if (is20) {
+    if (overlay) overlay.classList.add('quiz-20-active');
+    if (content) content.classList.add('quiz-20-active');
+  } else {
+    if (overlay) overlay.classList.remove('quiz-20-active');
+    if (content) content.classList.remove('quiz-20-active');
+  }
+
   const timeMins=Math.floor(timeTaken/60).toString().padStart(2,'0'),timeSecs=(timeTaken%60).toString().padStart(2,'0');
   const totalMins=Math.floor(totalTime/60).toString().padStart(2,'0'),totalSecs=(totalTime%60).toString().padStart(2,'0');
   const C=2*Math.PI*25,rankFill=((totalStudents-rank)/totalStudents)*C,pctFill=(percentile/100)*C,accFill=(accuracy/100)*C;
   const scorePct=Math.round((score/test.questions.length)*100);
   const performLabel=scorePct>=80?'🏆 Excellent!':scorePct>=60?'👍 Good Job!':scorePct>=40?'📚 Keep Practicing':'💪 Needs Improvement';
-  document.getElementById('modal-content').innerHTML=`<div class="result-screen">
-    <div class="result-header">
-      <div><div class="result-header-badge">📊 Overall Performance Summary</div><h2 class="result-title">${test.icon} ${test.title}</h2><p class="result-sub">Attempted: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p></div>
-      <button class="btn-back modal-close-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div class="result-body">
-      <div class="score-card-big"><div class="score-circle"><span class="sc-big">${score}</span><span class="sc-small">/${test.questions.length}</span></div><div class="score-card-info"><h3>${score}.0 <span>| ${test.questions.length}</span></h3><p>Your Score</p><div class="perf-label">${performLabel}</div></div></div>
-      <div class="time-card"><div class="time-icon">⏱</div><div class="time-vals"><h3>${timeMins}:${timeSecs} <span>| ${totalMins}:${totalSecs}</span></h3><p>Time Spent</p></div></div>
-      <div class="stats-trio">
-        <div class="trio-card ring-rank"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-rankFill}"/></svg><div class="trio-val">${rank}</div></div><div class="trio-main" style="color:var(--gold)">${rank} <span class="trio-total">| ${totalStudents}</span></div><div class="trio-lbl">Your Rank</div></div>
-        <div class="trio-card ring-pct"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-pctFill}"/></svg><div class="trio-val">${percentile}%</div></div><div class="trio-main" style="color:var(--danger)">${percentile} <span class="trio-total">| 100</span></div><div class="trio-lbl">Percentile</div></div>
-        <div class="trio-card ring-acc"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-accFill}"/></svg><div class="trio-val">${accuracy}%</div></div><div class="trio-main" style="color:var(--info)">${accuracy} <span class="trio-total">| 100</span></div><div class="trio-lbl">Accuracy</div></div>
+
+  if (is20) {
+    document.getElementById('modal-content').innerHTML = `
+      <div class="quiz-20-result-wrap">
+        <div class="quiz-20-res-header">
+          <div>
+            <div class="quiz-20-res-badge">📊 Overall Performance Summary</div>
+            <h2 class="quiz-20-res-title">${test.icon} ${test.title}</h2>
+            <p class="quiz-20-res-date">Attempted: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p>
+          </div>
+          <button class="quiz-20-res-close" onclick="closeModal()">✕</button>
+        </div>
+
+        <div class="quiz-20-score-card">
+          <div class="quiz-20-score-circle">
+            <span class="quiz-20-sc-val">${score}</span>
+            <span class="quiz-20-sc-total">/${test.questions.length}</span>
+          </div>
+          <div class="quiz-20-score-info">
+            <h3>${score}.0 <span>| ${test.questions.length}</span></h3>
+            <p>Your Score</p>
+            <div class="quiz-20-perf-tag">${performLabel}</div>
+          </div>
+        </div>
+
+        <div class="quiz-20-time-card">
+          <div class="quiz-20-time-icon">⏱</div>
+          <div class="quiz-20-time-info">
+            <h3>${timeMins}:${timeSecs} <span>| ${totalMins}:${totalSecs}</span></h3>
+            <p>Time Spent</p>
+          </div>
+        </div>
+
+        <div class="quiz-20-stats-trio">
+          <div class="quiz-20-trio-card">
+            <div class="quiz-20-trio-ring">
+              <svg viewBox="0 0 60 60" width="60" height="60">
+                <circle class="quiz-20-trio-ring-bg" cx="30" cy="30" r="25"/>
+                <circle class="quiz-20-trio-ring-fill" cx="30" cy="30" r="25" stroke="var(--violet)" stroke-dasharray="${C}" stroke-dashoffset="${C-rankFill}"/>
+              </svg>
+              <div class="quiz-20-trio-val-abs">${rank}</div>
+            </div>
+            <div class="quiz-20-trio-main" style="color:var(--violet)">${rank} <span class="quiz-20-trio-total">| ${totalStudents}</span></div>
+            <div class="quiz-20-trio-lbl">Your Rank</div>
+          </div>
+          <div class="quiz-20-trio-card">
+            <div class="quiz-20-trio-ring">
+              <svg viewBox="0 0 60 60" width="60" height="60">
+                <circle class="quiz-20-trio-ring-bg" cx="30" cy="30" r="25"/>
+                <circle class="quiz-20-trio-ring-fill" cx="30" cy="30" r="25" stroke="var(--pink)" stroke-dasharray="${C}" stroke-dashoffset="${C-pctFill}"/>
+              </svg>
+              <div class="quiz-20-trio-val-abs">${percentile}%</div>
+            </div>
+            <div class="quiz-20-trio-main" style="color:var(--pink)">${percentile} <span class="quiz-20-trio-total">| 100</span></div>
+            <div class="quiz-20-trio-lbl">Percentile</div>
+          </div>
+          <div class="quiz-20-trio-card">
+            <div class="quiz-20-trio-ring">
+              <svg viewBox="0 0 60 60" width="60" height="60">
+                <circle class="quiz-20-trio-ring-bg" cx="30" cy="30" r="25"/>
+                <circle class="quiz-20-trio-ring-fill" cx="30" cy="30" r="25" stroke="var(--cyan)" stroke-dasharray="${C}" stroke-dashoffset="${C-accFill}"/>
+              </svg>
+              <div class="quiz-20-trio-val-abs">${accuracy}%</div>
+            </div>
+            <div class="quiz-20-trio-main" style="color:var(--cyan)">${accuracy} <span class="quiz-20-trio-total">| 100</span></div>
+            <div class="quiz-20-trio-lbl">Accuracy</div>
+          </div>
+        </div>
+
+        <div class="quiz-20-res-actions">
+          <button class="quiz-20-btn-share" onclick="shareResult()">⬆ Share</button>
+          <button class="quiz-20-btn-reattempt" onclick="startTest(${test.id})">↩ Re-Attempt</button>
+        </div>
+
+        <div class="quiz-20-sec-sum">
+          <h3 class="quiz-20-sec-title">Sectional Summary</h3>
+          <div class="quiz-20-sec-grid">
+            <div class="quiz-20-sec-card quiz-20-sec-correct">
+              <span class="quiz-20-sec-num">${score}</span>
+              <span class="quiz-20-sec-lbl">Correct</span>
+            </div>
+            <div class="quiz-20-sec-card quiz-20-sec-wrong">
+              <span class="quiz-20-sec-num">${wrong}</span>
+              <span class="quiz-20-sec-lbl">Wrong</span>
+            </div>
+            <div class="quiz-20-sec-card quiz-20-sec-skip">
+              <span class="quiz-20-sec-num">${skippedParam}</span>
+              <span class="quiz-20-sec-lbl">Skipped</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="quiz-20-view-sol" onclick="viewSolutions(${test.id})">📖 View Solutions</button>
       </div>
-      <div class="result-action-row"><button class="btn-share" onclick="shareResult()">⬆ Share</button><button class="btn-reattempt-big" onclick="startTest(${test.id})">↩ Re-Attempt</button></div>
-      <div class="sectional-summary">
-        <div class="section-title-bar"><h3>Sectional Summary</h3></div>
-        <div class="breakdown-row"><div class="bdown-card bdown-correct"><div class="bdown-num">${score}</div><div class="bdown-lbl">Correct</div></div><div class="bdown-card bdown-wrong"><div class="bdown-num">${wrong}</div><div class="bdown-lbl">Wrong</div></div><div class="bdown-card bdown-skip"><div class="bdown-num">${skippedParam}</div><div class="bdown-lbl">Skipped</div></div></div>
+    `;
+  } else {
+    document.getElementById('modal-content').innerHTML=`<div class="result-screen">
+      <div class="result-header">
+        <div><div class="result-header-badge">📊 Overall Performance Summary</div><h2 class="result-title">${test.icon} ${test.title}</h2><p class="result-sub">Attempted: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p></div>
+        <button class="btn-back modal-close-btn" onclick="closeModal()">✕</button>
       </div>
-      <button class="view-sol-btn" onclick="viewSolutions(${test.id})">📖 View Solutions</button>
-    </div>
-  </div>`;
+      <div class="result-body">
+        <div class="score-card-big"><div class="score-circle"><span class="sc-big">${score}</span><span class="sc-small">/${test.questions.length}</span></div><div class="score-card-info"><h3>${score}.0 <span>| ${test.questions.length}</span></h3><p>Your Score</p><div class="perf-label">${performLabel}</div></div></div>
+        <div class="time-card"><div class="time-icon">⏱</div><div class="time-vals"><h3>${timeMins}:${timeSecs} <span>| ${totalMins}:${totalSecs}</span></h3><p>Time Spent</p></div></div>
+        <div class="stats-trio">
+          <div class="trio-card ring-rank"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-rankFill}"/></svg><div class="trio-val">${rank}</div></div><div class="trio-main" style="color:var(--gold)">${rank} <span class="trio-total">| ${totalStudents}</span></div><div class="trio-lbl">Your Rank</div></div>
+          <div class="trio-card ring-pct"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-pctFill}"/></svg><div class="trio-val">${percentile}%</div></div><div class="trio-main" style="color:var(--danger)">${percentile} <span class="trio-total">| 100</span></div><div class="trio-lbl">Percentile</div></div>
+          <div class="trio-card ring-acc"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-accFill}"/></svg><div class="trio-val">${accuracy}%</div></div><div class="trio-main" style="color:var(--info)">${accuracy} <span class="trio-total">| 100</span></div><div class="trio-lbl">Accuracy</div></div>
+        </div>
+        <div class="result-action-row"><button class="btn-share" onclick="shareResult()">⬆ Share</button><button class="btn-reattempt-big" onclick="startTest(${test.id})">↩ Re-Attempt</button></div>
+        <div class="sectional-summary">
+          <div class="section-title-bar"><h3>Sectional Summary</h3></div>
+          <div class="breakdown-row"><div class="bdown-card bdown-correct"><div class="bdown-num">${score}</div><div class="bdown-lbl">Correct</div></div><div class="bdown-card bdown-wrong"><div class="bdown-num">${wrong}</div><div class="bdown-lbl">Wrong</div></div><div class="bdown-card bdown-skip"><div class="bdown-num">${skippedParam}</div><div class="bdown-lbl">Skipped</div></div></div>
+        </div>
+        <button class="view-sol-btn" onclick="viewSolutions(${test.id})">📖 View Solutions</button>
+      </div>
+    </div>`;
+  }
 }
 
 function viewSolutions(testId){
