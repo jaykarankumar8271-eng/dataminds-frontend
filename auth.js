@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════════════
 // AUTH.JS — MySQL Backend Connected
-// DataMinds Test Series
+// SarkariMockTest Test Series
 // ═══════════════════════════════════════════════════════
 
 // ══ BACKEND URL — Railway deploy ke baad yahan apna URL daalo ══
-const API_URL = 'https://dataminds-backend.onrender.com';
+const API_URL = 'https://dataminds-backend.onrender.com'; // TODO: Update to your Render URL
 // Example: const API_URL = 'https://dataminds-production.up.railway.app';
 
 // ── TOKEN ──
@@ -154,7 +154,7 @@ function onLoginSuccess(user, isNew = false, remember = true) {
   document.getElementById('dropdown-email').textContent  = user.email;
   showAppSection('tests');
   renderTests('all');
-  if (isNew) showToast(`🎉 Welcome to DataMinds, ${user.fname}!`);
+  if (isNew) showToast(`🎉 Welcome to SarkariMockTest, ${user.fname}!`);
   else       showToast(`Welcome back, ${user.fname}! 🎯`);
 }
 

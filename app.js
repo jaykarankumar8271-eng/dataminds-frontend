@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// APP.JS — Upgraded DataMinds (v2.0)
+// APP.JS — Upgraded SarkariMockTest (v2.0)
 // ═══════════════════════════════════════════════════════
 
 let currentTestId    = null;
@@ -319,7 +319,7 @@ async function initiatePayment(testId) {
     if(!res.ok) throw new Error('failed');
     const {order_id,key_id} = await res.json();
     const options = {
-      key:key_id,amount:9900,currency:'INR',name:'DataMinds',
+      key:key_id,amount:9900,currency:'INR',name:'SarkariMockTest',
       description:`Unlock: ${test.title}`,order_id,
       handler:async(response)=>{await verifyPayment(response,testId);},
       theme:{color:'#FF6B35'},modal:{ondismiss:()=>showToast('Payment cancelled')}
@@ -426,43 +426,73 @@ function renderQuizScreen() {
       <div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div>
     </div>`).join('');
   const isLast=currentQIndex===n-1;
+  // Design-C Quiz UI
+  const anyLong = q.opts.some(o => o.length > 40);
   content.innerHTML=`<div class="quiz-screen">
-    <div class="quiz-topbar">
+    <header class="quiz-topbar">
       <div class="quiz-title-wrap"><div class="quiz-title">${test.icon} ${test.title}</div></div>
-      <div class="quiz-timer ${timerClass}" id="quiz-timer"><span class="timer-icon">⏱</span><span id="timer-display">${mins}:${secs}</span></div>
-    </div>
+      <div class="quiz-topbar-center">
+        <div class="quiz-prog-lbl">${currentQIndex+1} / ${n}</div>
+        <div class="quiz-prog-wrap"><div class="quiz-prog-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="quiz-timer ${timerClass}" id="quiz-timer">
+          <div class="timer-icon"></div>
+          <span id="timer-display">${mins}:${secs}</span>
+        </div>
+        <button class="btn-submit-test" onclick="confirmSubmit()">Submit Test</button>
+      </div>
+    </header>
     <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
     <div class="mobile-palette-bar">
       <span class="q-number-m">Q${currentQIndex+1}/${n}</span>
-      <button class="mobile-palette-toggle" onclick="toggleMobilePalette()">📋 Palette (${answered}/${n})</button>
+      <button class="mobile-palette-toggle" onclick="toggleMobilePalette()">☰ Palette (${answered}/${n})</button>
     </div>
     <div class="quiz-body">
       <div class="quiz-main">
-        <div class="question-header"><span class="q-number">Q${currentQIndex+1} <span style="color:var(--text-muted)">/ ${n}</span></span><span class="q-tag">${q.tag}</span></div>
-        <div class="question-text">${q.q}</div>
-        <div class="options-list" id="options-list">${optionsHTML}</div>
+        <div class="quiz-main-scroll">
+          <div class="question-header">
+            <div class="q-number">Q${currentQIndex+1} / ${n}</div>
+            <div class="q-tag">${q.tag||'General'}</div>
+            ${test.negative?`<div class="q-marks-badge">+${test.perCorrect||1} सही &nbsp;·&nbsp; −${test.negative} गलत</div>`:''}
+          </div>
+          <div class="question-card">
+            <div class="q-num-label">प्रश्न ${String(currentQIndex+1).padStart(3,'0')}</div>
+            <div class="question-text">${q.q}</div>
+          </div>
+          <div class="${anyLong?'options-list':'opts-grid'}" id="options-list">${optionsHTML}</div>
+        </div>
+        <div class="quiz-footer">
+          <div class="quiz-footer-btns">
+            ${currentQIndex>0?`<button class="btn-cancel" onclick="prevQuestion()">← पिछला</button>`:''}
+            <div class="footer-q-num">${currentQIndex+1} / ${n}</div>
+            <button class="btn-skip" onclick="skipQuestion()">बाद में ⚑</button>
+            ${isLast?`<button class="btn-next" onclick="confirmSubmit()">Submit ✓</button>`:`<button class="btn-next" onclick="nextQuestion()">अगला →</button>`}
+          </div>
+        </div>
       </div>
       <div class="quiz-sidebar" id="quiz-sidebar">
-        <div class="sidebar-header-row"><div class="sidebar-title">Question Palette</div><button class="sidebar-close-mobile" onclick="toggleMobilePalette()">✕</button></div>
-        <div class="q-palette">${palette}</div>
+        <div class="sidebar-header-row">
+          <div class="sidebar-title">Question Palette</div>
+          <button class="sidebar-close-mobile" onclick="toggleMobilePalette()">✕</button>
+        </div>
+        <div class="sidebar-stats">
+          <div class="sstat sstat-ans"><span class="sstat-n" id="s-ans">${answered}</span><span class="sstat-l">Done</span></div>
+          <div class="sstat sstat-rem"><span class="sstat-n" id="s-rem">${n-answered}</span><span class="sstat-l">Left</span></div>
+          <div class="sstat sstat-mrk"><span class="sstat-n" id="s-mrk">${skipped.filter(Boolean).length}</span><span class="sstat-l">Skipped</span></div>
+        </div>
         <div class="sidebar-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Current</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(46,204,113,0.5);border:1px solid #2ECC71"></div>Answered</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(243,156,18,0.3);border:1px solid #F39C12"></div>Skipped</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#2A2F50"></div>Not Visited</div>
+          <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#a855f7,#ec4899)"></div>Current</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3)"></div>Answered</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)"></div>Skipped</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)"></div>Unattempted</div>
         </div>
+        <div class="q-palette" id="quiz-palette">${palette}</div>
         <div class="sidebar-submit-section">
-          <div class="answered-count">Answered: <strong style="color:var(--success)">${answered}</strong> / ${n}</div>
+          <div class="answered-count">Answered: <strong style="color:#4ade80">${answered}</strong> / ${n}</div>
           <button class="btn-submit-test" onclick="confirmSubmit()">✓ Submit Test</button>
+          <button class="btn-clear-ans" onclick="clearCurrentAnswer()">✕ उत्तर हटाएं</button>
         </div>
-      </div>
-    </div>
-    <div class="quiz-footer">
-      <div class="quiz-footer-info">Question ${currentQIndex+1} of ${n}</div>
-      <div class="quiz-footer-btns">
-        ${currentQIndex>0?`<button class="btn-cancel" onclick="prevQuestion()">← Prev</button>`:''}
-        <button class="btn-skip" onclick="skipQuestion()">Skip →</button>
-        ${isLast?`<button class="btn-submit-test" onclick="confirmSubmit()">Submit ✓</button>`:`<button class="btn-next" onclick="nextQuestion()">Next →</button>`}
       </div>
     </div>
   </div>`;
@@ -481,13 +511,16 @@ function selectOption(optIdx){
   }
   const palette=document.querySelector('.q-palette');
   if(palette) palette.innerHTML=test.questions.map((_,i)=>{let cls='';if(i===currentQIndex)cls='q-current';else if(answers[i]!==-1)cls='q-answered';else if(skipped[i])cls='q-skipped';return `<div class="q-dot ${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;}).join('');
-  const ac=document.querySelector('.answered-count');if(ac)ac.innerHTML=`Answered: <strong style="color:var(--success)">${answered}</strong> / ${n}`;
-  const mb=document.querySelector('.mobile-palette-toggle');if(mb)mb.textContent=`📋 Palette (${answered}/${n})`;
+  const ac=document.querySelector('.answered-count');if(ac)ac.innerHTML=`Answered: <strong style="color:#4ade80">${answered}</strong> / ${n}`;
+  const mb=document.querySelector('.mobile-palette-toggle');if(mb)mb.textContent=`☰ Palette (${answered}/${n})`;
+  const sa=document.getElementById('s-ans');if(sa)sa.textContent=answered;
+  const sr=document.getElementById('s-rem');if(sr)sr.textContent=n-answered;
 }
 
 function nextQuestion(){const test=ALL_TESTS.find(t=>t.id===currentTestId);if(currentQIndex<test.questions.length-1){currentQIndex++;renderQuizScreen();}}
 function prevQuestion(){if(currentQIndex>0){currentQIndex--;renderQuizScreen();}}
 function skipQuestion(){skipped[currentQIndex]=true;const test=ALL_TESTS.find(t=>t.id===currentTestId);if(currentQIndex<test.questions.length-1)currentQIndex++;renderQuizScreen();}
+function clearCurrentAnswer(){answers[currentQIndex]=-1;skipped[currentQIndex]=false;renderQuizScreen();}
 function goToQuestion(idx){currentQIndex=idx;const s=document.getElementById('quiz-sidebar');if(s)s.classList.remove('palette-open');renderQuizScreen();}
 
 function confirmSubmit(){
@@ -495,7 +528,8 @@ function confirmSubmit(){
   const answered=answers.filter(a=>a!==-1).length,unanswered=test.questions.length-answered;
   if(unanswered>0){
     const o=document.createElement('div');o.className='confirm-overlay';o.style.zIndex='6000';
-    o.innerHTML=`<div class="confirm-box"><h3>⚠️ Submit Test?</h3><p>You have <strong style="color:var(--warning)">${unanswered} unanswered</strong> question(s).</p><div class="confirm-btns"><button class="btn-outline-sm" onclick="this.closest('.confirm-overlay').remove()">Continue</button><button class="btn-auth-submit" style="max-width:160px" onclick="this.closest('.confirm-overlay').remove();submitTest()">Submit Anyway</button></div></div>`;
+    const a2=answers.filter(a=>a!==-1).length,sk2=skipped.filter(Boolean).length;
+    o.innerHTML=`<div class="confirm-box"><h2>Submit करें?</h2><p>आपने <strong style="color:#4ade80">${a2}</strong> प्रश्न हल किए, <strong style="color:#fbbf24">${sk2}</strong> छोड़े, <strong style="color:#f87171">${unanswered}</strong> अनुत्तरित।</p><div class="confirm-btns"><button class="btn-outline-sm" onclick="this.closest('.confirm-overlay').remove()">वापस जाएं</button><button class="btn-auth-submit" onclick="this.closest('.confirm-overlay').remove();submitTest()">हाँ, Submit करें</button></div></div>`;
     document.body.appendChild(o);
   } else { submitTest(); }
 }
@@ -576,8 +610,8 @@ function goBackToResult(testId){
 
 function shareResult(){
   const test=ALL_TESTS.find(t=>t.id===currentTestId),results=loadResults(),res=results[currentTestId];
-  const txt=`📊 DataMinds Result\n${test?test.title:'Test'}\nScore: ${res?.score||0}/${res?.total||20}\nAccuracy: ${res?.accuracy||0}%\n🎯 BPSC TRE 4.0 Prep!\n#DataMinds #BPSC_TRE4`;
-  if(navigator.share)navigator.share({title:'DataMinds Result',text:txt}).catch(()=>copyToClipboard(txt));else copyToClipboard(txt);
+  const txt=`📊 SarkariMockTest Result\n${test?test.title:'Test'}\nScore: ${res?.score||0}/${res?.total||20}\nAccuracy: ${res?.accuracy||0}%\n🎯 BPSC TRE 4.0 Prep!\n#SarkariMockTest #BPSC_TRE4`;
+  if(navigator.share)navigator.share({title:'SarkariMockTest Result',text:txt}).catch(()=>copyToClipboard(txt));else copyToClipboard(txt);
 }
 function copyToClipboard(text){
   if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>showToast('✅ Copied!'));
