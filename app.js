@@ -60,6 +60,36 @@ async function openTestIntroWithDB(testId) {
   openTestIntro(testId);
 }
 
+
+// Smart test opener — handles both local questions and DB questions
+async function handleStartTest(testId) {
+  const test = ALL_TESTS.find(t => t.id === testId);
+  if (!test) { showToast('❌ Test not found!', 'error'); return; }
+  
+  // If test has local questions — open directly
+  if (test.questions && test.questions.length > 0) {
+    openTestIntro(testId);
+    return;
+  }
+  
+  // PYQ / DB-based test — try loading from backend
+  showToast('⏳ Questions load ho rahi hain...');
+  try {
+    const dbQs = await loadDBQuestions(testId);
+    if (dbQs && dbQs.length > 0) {
+      test.questions = dbQs;
+      test.totalQuestions = dbQs.length;
+      showToast('✅ ' + dbQs.length + ' questions loaded!');
+      openTestIntro(testId);
+    } else {
+      // No questions in DB either — show friendly message
+      showToast('🔜 Ye test jald aayega! Questions add ho rahe hain.', 'info');
+    }
+  } catch(e) {
+    showToast('🔜 Ye test jald aayega! Backend se connect nahi ho pa raha.', 'info');
+  }
+}
+
 function loadResults() {
   if (typeof getUserResults === 'function') return getUserResults();
   try { return JSON.parse(localStorage.getItem('dm_results') || '{}'); } catch { return {}; }
@@ -258,7 +288,7 @@ function renderTests(filter='all') {
         </div>
         ${premium&&!unlocked
           ?`<button class="btn-unlock" onclick="openPaymentModal(${test.id})">🔓 Unlock ₹99</button>`
-          :`<button class="btn-${attempted?'reattempt':'start'}" onclick="(typeof openTestIntroWithDB!=='undefined'&&(!ALL_TESTS.find(t=>t.id===${test.id})?.questions?.length)?openTestIntroWithDB:openTestIntro)(${test.id})">${attempted?'↩ Re-Attempt':'▶ Start Test'}</button>`}
+          :`<button class="btn-${attempted?'reattempt':'start'}" onclick="handleStartTest(${test.id})">${attempted?'↩ Re-Attempt':'▶ Start Test'}</button>`}
       </div>`;
     grid.appendChild(card);
   });
