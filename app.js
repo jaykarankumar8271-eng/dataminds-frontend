@@ -395,9 +395,11 @@ function closeModal() {
   if (overlay) {
     overlay.classList.add('hidden');
     overlay.classList.remove('quiz-20-active');
+    overlay.classList.remove('quiz-20-result-active');
   }
   if (content) {
     content.classList.remove('quiz-20-active');
+    content.classList.remove('quiz-20-result-active');
   }
   document.body.style.overflow='';
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
@@ -763,12 +765,16 @@ function renderResultScreen(test,score,wrong,skippedParam,accuracy,rank,totalStu
   
   const is20 = test.questions.length === 20;
 
+  // Remove quiz-20-active (which is for full-screen quiz)
+  if (overlay) overlay.classList.remove('quiz-20-active');
+  if (content) content.classList.remove('quiz-20-active');
+
   if (is20) {
-    if (overlay) overlay.classList.add('quiz-20-active');
-    if (content) content.classList.add('quiz-20-active');
+    if (overlay) overlay.classList.add('quiz-20-result-active');
+    if (content) content.classList.add('quiz-20-result-active');
   } else {
-    if (overlay) overlay.classList.remove('quiz-20-active');
-    if (content) content.classList.remove('quiz-20-active');
+    if (overlay) overlay.classList.remove('quiz-20-result-active');
+    if (content) content.classList.remove('quiz-20-result-active');
   }
 
   const timeMins=Math.floor(timeTaken/60).toString().padStart(2,'0'),timeSecs=(timeTaken%60).toString().padStart(2,'0');
