@@ -18,10 +18,16 @@ let searchQuery      = '';
 let difficultyFilter = 'all';
 let premiumFilter    = 'all';
 
-// ── LOAD DB QUESTIONS for tests with empty questions array ──
-async function loadDBQuestions(testId) {
+// ── LOAD DB QUESTIONS — with retry for Render cold start ──
+const _API = typeof API_URL !== 'undefined' ? API_URL : 'https://dataminds-backend.onrender.com';
+
+async function loadDBQuestions(testId, attempt=1) {
   try {
-    const res = await fetch(`${typeof API_URL !== 'undefined' ? API_URL : 'https://dataminds-backend.onrender.com'}/api/questions/${testId}`);
+    showToast(attempt===1 ? '⏳ Questions load ho rahi hain...' : `⏳ Server wake ho raha hai... (${attempt}/3)`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout
+    const res = await fetch(`${_API}/api/questions/${testId}`, { signal: controller.signal });
+    clearTimeout(timeout);
     const data = await res.json();
     if (data.success && data.questions && data.questions.length > 0) {
       return data.questions.map(q => ({
@@ -32,9 +38,22 @@ async function loadDBQuestions(testId) {
         exp: q.explanation || ''
       }));
     }
-  } catch(e) { console.warn('DB questions load failed:', e); }
-  return null;
+    return null;
+  } catch(e) {
+    console.warn(`Attempt ${attempt} failed:`, e.message);
+    if (attempt < 3) {
+      // Retry after 3 seconds
+      await new Promise(r => setTimeout(r, 3000));
+      return loadDBQuestions(testId, attempt + 1);
+    }
+    return null;
+  }
 }
+
+// Ping backend on page load to wake it up early
+setTimeout(() => {
+  fetch(`${_API}/health`).catch(()=>{});
+}, 1000);
 
 // Override openTestIntro to load DB questions if needed
 const _origOpenTestIntro = typeof openTestIntro !== 'undefined' ? openTestIntro : null;
@@ -82,7 +101,6 @@ async function handleStartTest(testId) {
   }
   
   // PYQ / DB-based test — try loading from backend
-  showToast('⏳ Questions load ho rahi hain...');
   try {
     const dbQs = await loadDBQuestions(testId);
     if (dbQs && dbQs.length > 0) {
