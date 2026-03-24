@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>SarkariMockTest — Bihar & UP Ka #1 Mock Test Platform | BPSC, SSC, Railway</title>
 <meta name="description" content="Crack BPSC, SSC CGL/CHSL/MTS/Steno with SarkariMockTest. Bihar & UP focus, bilingual tests, detailed analytics. Join 50,000+ aspirants.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='2' width='12' height='12' rx='2' fill='%23FF6B35'/><rect x='18' y='2' width='12' height='12' rx='2' fill='%23FF6B35' opacity='.6'/><rect x='2' y='18' width='12' height='12' rx='2' fill='%23FF6B35' opacity='.6'/><rect x='18' y='18' width='12' height='12' rx='2' fill='%23FF6B35'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='2' width='12' height='12' rx='2' fill='%23a855f7'/><rect x='18' y='2' width='12' height='12' rx='2' fill='%23ec4899' opacity='.7'/><rect x='2' y='18' width='12' height='12' rx='2' fill='%23ec4899' opacity='.7'/><rect x='18' y='18' width='12' height='12' rx='2' fill='%23a855f7'/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="auth.css">
@@ -15,6 +15,12 @@
 <link rel="stylesheet" href="themes.css">
 </head>
 <body>
+
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
 
 <div id="auth-wrapper" class="auth-wrapper" style="display:none">
 
@@ -33,10 +39,10 @@
       <div class="lnav-inner">
         <div class="lnav-logo" onclick="showPage('page-landing')">
           <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-            <rect x="2" y="2" width="12" height="12" rx="2" fill="#FF6B35"/>
-            <rect x="18" y="2" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/>
-            <rect x="2" y="18" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/>
-            <rect x="18" y="18" width="12" height="12" rx="2" fill="#FF6B35"/>
+            <rect x="2" y="2" width="12" height="12" rx="2" fill="#a855f7"/>
+            <rect x="18" y="2" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/>
+            <rect x="2" y="18" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/>
+            <rect x="18" y="18" width="12" height="12" rx="2" fill="#a855f7"/>
           </svg>
           <div><span class="lnav-brand">SarkariMockTest</span><span class="lnav-tag">Test Series</span></div>
         </div>
@@ -134,7 +140,7 @@
         </h1>
         <p class="lhero-desc">
           PYQ-based mock tests · Adda247-style analytics · Real exam pattern.<br>
-          Join <strong>50,000+</strong> aspirants preparing smarter on SarkariMockTest.
+          Join <strong id="student-count-hero">12,480+</strong> aspirants preparing smarter on SarkariMockTest.
         </p>
         <div class="lhero-cta">
           <button class="lcta-primary" onclick="showPage('page-register')">🚀 Start Preparing — Free</button>
@@ -172,7 +178,7 @@
 
     <!-- STATS -->
     <div class="lstats-bar">
-      <div class="lstat"><strong>50,000+</strong><span>Students</span></div>
+      <div class="lstat"><strong id="student-count-stat">12,480+</strong><span>Students</span></div>
       <div class="lstat-sep"></div>
       <div class="lstat"><strong>20</strong><span>Mock Tests</span></div>
       <div class="lstat-sep"></div>
@@ -236,7 +242,7 @@
     <!-- FEATURES -->
     <section class="lfeatures-section">
       <div class="lsection-head">
-        <h2>Why 50,000+ Students Choose SarkariMockTest</h2>
+        <h2>Why <span id="student-count-why">12,480+</span> Students Choose SarkariMockTest</h2>
         <p>Built by toppers, designed for aspirants</p>
       </div>
       <div class="lfeatures-grid">
@@ -275,7 +281,7 @@
     <section class="lfinal-cta">
       <div class="lfinal-inner">
         <h2>Ready to Crack BPSC TRE 4.0?</h2>
-        <p>Join 50,000+ aspirants already preparing on SarkariMockTest</p>
+        <p>Join <span id="student-count-footer">12,480+</span> aspirants already preparing on SarkariMockTest</p>
         <button class="lcta-primary lcta-lg" onclick="showPage('page-register')">🚀 Start Free Now — No Credit Card</button>
         <div class="lhero-trust" style="justify-content:center;margin-top:16px">
           <span>✅ Free Access</span><span>✅ 20 Mock Tests</span><span>✅ Instant Results</span>
@@ -287,13 +293,15 @@
     <footer class="lfooter">
       <div class="lfooter-inner">
         <div class="lfooter-logo">
-          <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#FF6B35"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#FF6B35"/></svg>
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#a855f7"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#a855f7"/></svg>
           <span>SarkariMockTest</span>
         </div>
         <div class="lfooter-links">
+          <a onclick="showPage('page-landing')">Home</a>
           <a onclick="showPage('page-register')">Tests</a>
-          <a onclick="showPage('page-register')">Leaderboard</a>
-          <a onclick="showPage('page-register')">Dashboard</a>
+          <a onclick="showPage('page-privacy')">Privacy Policy</a>
+          <a onclick="showPage('page-terms')">Terms of Service</a>
+          <a href="/api/download-project" download="SarkariMockTest_Project.zip" style="background:var(--laccent);color:#fff;padding:4px 12px;border-radius:20px;font-weight:700;font-size:12px">📥 Download Project</a>
         </div>
         <p class="lfooter-copy">© 2025 SarkariMockTest. Made with 🇮🇳 for Bihar & UP aspirants.</p>
       </div>
@@ -302,13 +310,56 @@
     <div id="landing-toast" class="landing-toast"></div>
   </div>
 
-  <!-- REGISTER -->
-  <div id="page-register" class="auth-page" style="display:none">
+<!-- PRIVACY POLICY -->
+  <div id="page-privacy" class="auth-page" style="display:none">
+    <div class="auth-glow-top"></div>
+    <div class="auth-card-wrap" style="max-width:800px">
+      <div class="auth-card" style="text-align:left">
+        <h2 class="auth-title">Privacy Policy</h2>
+        <p class="auth-subtitle">Last updated: March 2026</p>
+        <div class="legal-content" style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-top:20px;max-height:60vh;overflow-y:auto;padding-right:10px">
+          <p>Welcome to SarkariMockTest. We value your privacy and are committed to protecting your personal data.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">1. Information We Collect</h3>
+          <p>We collect information you provide directly to us when you create an account, such as your name, email address, and mobile number.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">2. How We Use Your Information</h3>
+          <p>We use your information to provide and improve our services, communicate with you, and personalize your experience.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">3. Data Security</h3>
+          <p>We implement appropriate technical and organizational measures to protect your personal data against unauthorized access or disclosure.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">4. Your Rights</h3>
+          <p>You have the right to access, correct, or delete your personal data. You can manage your profile settings within the app.</p>
+        </div>
+        <p class="auth-switch" style="margin-top:20px"><a onclick="showPage('page-landing')" style="color:var(--accent);font-weight:600">← Back to Home</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TERMS OF SERVICE -->
+  <div id="page-terms" class="auth-page" style="display:none">
+    <div class="auth-glow-top"></div>
+    <div class="auth-card-wrap" style="max-width:800px">
+      <div class="auth-card" style="text-align:left">
+        <h2 class="auth-title">Terms of Service</h2>
+        <p class="auth-subtitle">Last updated: March 2026</p>
+        <div class="legal-content" style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-top:20px;max-height:60vh;overflow-y:auto;padding-right:10px">
+          <p>By using SarkariMockTest, you agree to these terms. Please read them carefully.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">1. Use of Service</h3>
+          <p>You must follow any policies made available to you within the Service. You may use our Service only as permitted by law.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">2. Your Account</h3>
+          <p>You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">3. Content</h3>
+          <p>Our Service allows you to access mock tests and study materials. All content is for educational purposes only.</p>
+          <h3 style="color:var(--text-primary);margin:15px 0 5px">4. Termination</h3>
+          <p>We may suspend or terminate your access to the Service if you do not comply with our terms or policies.</p>
+        </div>
+        <p class="auth-switch" style="margin-top:20px"><a onclick="showPage('page-landing')" style="color:var(--accent);font-weight:600">← Back to Home</a></p>
+      </div>
+    </div>
+  </div>
     <div class="auth-glow-top"></div>
     <div class="auth-card-wrap">
       <div class="auth-card">
         <div class="auth-card-logo">
-          <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#FF6B35"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#FF6B35"/></svg>
+          <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#a855f7"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#a855f7"/></svg>
           <div class="logo-text"><span class="logo-main">SarkariMockTest</span></div>
         </div>
         <h2 class="auth-title">Create your account</h2>
@@ -340,7 +391,7 @@
     <div class="auth-card-wrap">
       <div class="auth-card">
         <div class="auth-card-logo">
-          <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#FF6B35"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#FF6B35"/></svg>
+          <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#a855f7"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#a855f7"/></svg>
           <div class="logo-text"><span class="logo-main">SarkariMockTest</span></div>
         </div>
         <h2 class="auth-title">Welcome back!</h2>
@@ -367,7 +418,7 @@
     <div class="auth-card-wrap">
       <div class="auth-card">
         <div class="auth-card-logo">
-          <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#FF6B35"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#FF6B35"/></svg>
+          <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#a855f7"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#a855f7"/></svg>
           <div class="logo-text"><span class="logo-main">SarkariMockTest</span></div>
         </div>
         <h2 class="auth-title">Reset Password</h2>
@@ -393,7 +444,7 @@
     <div class="header-inner">
       <div class="logo-area">
         <div class="logo-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#FF6B35"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#FF6B35" opacity="0.6"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#FF6B35"/></svg>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" fill="#a855f7"/><rect x="18" y="2" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="2" y="18" width="12" height="12" rx="2" fill="#ec4899" opacity="0.7"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#a855f7"/></svg>
         </div>
         <div class="logo-text"><span class="logo-main">SarkariMockTest</span><span class="logo-sub">Test Series</span></div>
       </div>

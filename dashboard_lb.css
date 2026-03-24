@@ -23,7 +23,7 @@
   gap: 14px;
   transition: all .2s;
 }
-.dsg-card:hover { border-color: rgba(255,107,53,.3); transform: translateY(-2px); }
+.dsg-card:hover { border-color: rgba(168,85,247,.3); transform: translateY(-2px); }
 .dsg-icon {
   width: 48px; height: 48px;
   border-radius: 12px;
@@ -31,7 +31,7 @@
   font-size: 22px;
   flex-shrink: 0;
 }
-.dsg-icon.orange { background: rgba(255,107,53,.15); }
+.dsg-icon.orange { background: rgba(168,85,247,.15); }
 .dsg-icon.green  { background: rgba(16,185,129,.15); }
 .dsg-icon.blue   { background: rgba(59,130,246,.15); }
 .dsg-icon.yellow { background: rgba(245,158,11,.15); }
@@ -77,7 +77,7 @@
 .dri-num {
   width: 36px; height: 36px;
   border-radius: 10px;
-  background: rgba(255,107,53,.1);
+  background: rgba(168,85,247,.1);
   color: var(--accent);
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 13px;

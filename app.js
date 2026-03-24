@@ -399,7 +399,20 @@ function closeModal() {
 function startTest(testId) {
   currentTestId=testId; currentQIndex=0;
   const test=ALL_TESTS.find(t=>t.id===testId);
-  answers=new Array(test.questions.length).fill(-1);
+  
+  // Check for saved answers in localStorage
+  const savedAnswers = localStorage.getItem(`exam_${testId}_answers`);
+  if (savedAnswers) {
+    try {
+      answers = JSON.parse(savedAnswers);
+      showToast('✅ Restored your previous progress!');
+    } catch (e) {
+      answers = new Array(test.questions.length).fill(-1);
+    }
+  } else {
+    answers = new Array(test.questions.length).fill(-1);
+  }
+
   skipped=new Array(test.questions.length).fill(false);
   // Set time dynamically based on test config
   const _test = ALL_TESTS.find(t=>t.id===testId);
@@ -502,6 +515,12 @@ function toggleMobilePalette(){const s=document.getElementById('quiz-sidebar');i
 
 function selectOption(optIdx){
   answers[currentQIndex]=optIdx;
+  
+  // Auto-save to localStorage
+  if (currentTestId) {
+    localStorage.setItem(`exam_${currentTestId}_answers`, JSON.stringify(answers));
+  }
+
   const test=ALL_TESTS.find(t=>t.id===currentTestId),q=test.questions[currentQIndex],n=test.questions.length;
   const answered=answers.filter(a=>a!==-1).length;
   const optsList=document.getElementById('options-list');
@@ -546,6 +565,12 @@ function startTimer(){
 
 function submitTest(autoSubmit=false){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  
+  // Clear auto-save from localStorage
+  if (currentTestId) {
+    localStorage.removeItem(`exam_${currentTestId}_answers`);
+  }
+
   timeTaken=totalTime-timeLeft;
   const test=ALL_TESTS.find(t=>t.id===currentTestId);
   let score=0;test.questions.forEach((q,i)=>{if(answers[i]===q.ans)score++;});
@@ -620,6 +645,19 @@ function copyToClipboard(text){
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',()=>{
+  // Dynamic Student Count
+  const baseCount = 12480;
+  const updateStudentCounts = () => {
+    const randomAdd = Math.floor(Math.random() * 5);
+    const newCount = (baseCount + randomAdd).toLocaleString();
+    ['hero', 'stat', 'why', 'footer'].forEach(id => {
+      const el = document.getElementById(`student-count-${id}`);
+      if (el) el.textContent = `${newCount}+`;
+    });
+  };
+  updateStudentCounts();
+  setInterval(updateStudentCounts, 15000);
+
   renderCategoryBar(); renderSubjectBar(); renderSectionTabs(); renderAdvancedFilters();
   const overlay=document.getElementById('modal-overlay');
   if(overlay){
