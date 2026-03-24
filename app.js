@@ -390,6 +390,7 @@ function openTestIntro(testId) {
 }
 
 function closeModal() {
+  document.getElementById('modal-overlay')?.classList.remove('quiz-active');
   document.getElementById('modal-overlay').classList.add('hidden');
   document.body.style.overflow='';
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
@@ -426,7 +427,8 @@ function renderQuizScreen() {
       <div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div>
     </div>`).join('');
   const isLast=currentQIndex===n-1;
-  // Design-C Quiz UI
+  // Design-C Quiz UI — fullscreen modal
+  document.getElementById('modal-overlay')?.classList.add('quiz-active');
   const anyLong = q.opts.some(o => o.length > 40);
   content.innerHTML=`<div class="quiz-screen">
     <header class="quiz-topbar">
@@ -545,6 +547,7 @@ function startTimer(){
 }
 
 function submitTest(autoSubmit=false){
+  document.getElementById('modal-overlay')?.classList.remove('quiz-active');
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
   timeTaken=totalTime-timeLeft;
   const test=ALL_TESTS.find(t=>t.id===currentTestId);

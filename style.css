@@ -331,6 +331,21 @@ input, select { font-family: var(--font-main); outline: none; border: none; }
   padding: 20px;
 }
 .modal-overlay.hidden { display: none; }
+/* Quiz fullscreen mode — no padding, no scroll */
+.modal-overlay.quiz-active {
+  padding: 0 !important;
+  overflow: hidden !important;
+  align-items: stretch !important;
+}
+.modal-overlay.quiz-active .modal-content {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  animation: none !important;
+}
 .modal-content {
   background: var(--bg-card);
   border: 1px solid var(--border);
