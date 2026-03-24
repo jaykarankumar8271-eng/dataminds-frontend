@@ -1,55 +1,31 @@
 /* ===== CSS VARIABLES ===== */
 :root {
-  --bg: #1a1035;
-  --surface: #221545;
-  --surface2: #2a1a55;
-  --glass: rgba(255,255,255,0.06);
-  --glass2: rgba(255,255,255,0.10);
-  --gbdr: rgba(255,255,255,0.12);
-  --gbdr2: rgba(255,255,255,0.20);
-  --violet: #a855f7;
-  --violet2: #9333ea;
-  --violet3: #7c3aed;
-  --pink: #ec4899;
-  --pink2: #db2777;
-  --cyan: #22d3ee;
-  --text: #ffffff;
-  --text2: #e2d9ff;
-  --text3: #b39ddb;
-  --green: #4ade80;
-  --greenbg: rgba(74,222,128,.15);
-  --greenbdr: rgba(74,222,128,.3);
-  --amber: #fbbf24;
-  --amberbg: rgba(251,191,36,.12);
-  --amberbdr: rgba(251,191,36,.3);
-
-  /* Legacy variable mappings */
-  --primary: var(--violet);
-  --primary-dark: var(--violet2);
-  --primary-light: var(--text2);
-  --bg-dark: var(--bg);
-  --bg-card: var(--surface);
-  --bg-card2: var(--surface2);
-  --bg-input: var(--surface2);
-  --border: var(--gbdr);
-  --text-primary: var(--text);
-  --text-secondary: var(--text2);
-  --text-muted: var(--text3);
-  --success: var(--green);
-  --success-bg: var(--greenbg);
-  --danger: #f87171;
-  --danger-bg: rgba(248,113,113,.1);
-  --warning: var(--amber);
-  --info: var(--cyan);
-  --purple: var(--violet);
-  --gold: var(--amber);
-  --font-main: 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Sora', sans-serif;
+  --primary: #a855f7;
+  --primary-dark: #E85520;
+  --primary-light: #FF8C5A;
+  --bg-dark: #0D0F1A;
+  --bg-card: #141628;
+  --bg-card2: #1A1E35;
+  --bg-input: #1E2238;
+  --border: #2A2F50;
+  --text-primary: #EAEEF8;
+  --text-secondary: #8892B0;
+  --text-muted: #4A5270;
+  --success: #2ECC71;
+  --success-bg: #0D2A1A;
+  --danger: #E74C3C;
+  --danger-bg: #2A0D0D;
+  --warning: #F39C12;
+  --info: #3498DB;
+  --purple: #9B59B6;
+  --gold: #F1C40F;
+  --font-main: 'Noto Sans', sans-serif;
+  --font-display: 'Rajdhani', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 10px 40px rgba(0,0,0,0.4);
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.3);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.3);
 }
 
 /* ===== RESET ===== */
@@ -780,57 +756,4 @@ input, select { font-family: var(--font-main); outline: none; border: none; }
 .es-icon, .cs-icon { font-size:52px; margin-bottom:16px; }
 .empty-state h3, .coming-soon-state h3 { font-size:20px; color:var(--text-primary); margin:0 0 8px; }
 .empty-state p, .coming-soon-state p { font-size:14px; margin:0 0 20px; }
-
-/* ── AMBIENT BACKGROUND BLOBS ── */
-.bg-blobs {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-  background: #0F0720;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
-  animation: blobFloat 20s infinite alternate;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: #7C3AED;
-  top: -100px;
-  left: -100px;
-}
-
-.blob-2 {
-  width: 400px;
-  height: 400px;
-  background: var(--primary);
-  bottom: -50px;
-  right: -50px;
-  animation-delay: -5s;
-}
-
-.blob-3 {
-  width: 300px;
-  height: 300px;
-  background: #3B82F6;
-  top: 40%;
-  left: 60%;
-  animation-delay: -10s;
-}
-
-@keyframes blobFloat {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(50px, 50px) scale(1.1); }
-}
-
 

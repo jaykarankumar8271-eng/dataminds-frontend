@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════
 
 // ══ BACKEND URL — Railway deploy ke baad yahan apna URL daalo ══
-const API_URL = 'https://dataminds-backend.onrender.com'; // Updated to current Render URL
+const API_URL = 'https://dataminds-backend.onrender.com'; // TODO: Update to your Render URL
 // Example: const API_URL = 'https://dataminds-production.up.railway.app';
 
 // ── TOKEN ──

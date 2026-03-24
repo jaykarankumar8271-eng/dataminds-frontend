@@ -390,17 +390,7 @@ function openTestIntro(testId) {
 }
 
 function closeModal() {
-  const overlay = document.getElementById('modal-overlay');
-  const content = document.getElementById('modal-content');
-  if (overlay) {
-    overlay.classList.add('hidden');
-    overlay.classList.remove('quiz-20-active');
-    overlay.classList.remove('quiz-20-result-active');
-  }
-  if (content) {
-    content.classList.remove('quiz-20-active');
-    content.classList.remove('quiz-20-result-active');
-  }
+  document.getElementById('modal-overlay').classList.add('hidden');
   document.body.style.overflow='';
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
 }
@@ -409,20 +399,7 @@ function closeModal() {
 function startTest(testId) {
   currentTestId=testId; currentQIndex=0;
   const test=ALL_TESTS.find(t=>t.id===testId);
-  
-  // Check for saved answers in localStorage
-  const savedAnswers = localStorage.getItem(`exam_${testId}_answers`);
-  if (savedAnswers) {
-    try {
-      answers = JSON.parse(savedAnswers);
-      showToast('✅ Restored your previous progress!');
-    } catch (e) {
-      answers = new Array(test.questions.length).fill(-1);
-    }
-  } else {
-    answers = new Array(test.questions.length).fill(-1);
-  }
-
+  answers=new Array(test.questions.length).fill(-1);
   skipped=new Array(test.questions.length).fill(false);
   // Set time dynamically based on test config
   const _test = ALL_TESTS.find(t=>t.id===testId);
@@ -433,122 +410,9 @@ function startTest(testId) {
 function renderQuizScreen() {
   const test=ALL_TESTS.find(t=>t.id===currentTestId), q=test.questions[currentQIndex], n=test.questions.length;
   const content=document.getElementById('modal-content');
-  const overlay=document.getElementById('modal-overlay');
   const timerClass=timeLeft<120?'danger':timeLeft<300?'warning':'';
   const mins=Math.floor(timeLeft/60).toString().padStart(2,'0'), secs=(timeLeft%60).toString().padStart(2,'0');
   const answered=answers.filter(a=>a!==-1).length;
-  const isLast=currentQIndex===n-1;
-  const anyLong = q.opts.some(o => o.length > 40);
-
-  if (n === 20) {
-    if (content) content.classList.add('quiz-20-active');
-    if (overlay) overlay.classList.add('quiz-20-active');
-    // New UI for 20-question tests
-    const palette = test.questions.map((_, i) => {
-      let cls = 'quiz-20-pbox';
-      if (i === currentQIndex) cls += ' current';
-      else if (answers[i] !== -1) cls += ' answered';
-      else if (skipped[i]) cls += ' marked';
-      return `<div class="${cls}" onclick="goToQuestion(${i})">${i + 1}</div>`;
-    }).join('');
-
-    const optionsHTML = q.opts.map((opt, i) => `
-      <div class="quiz-20-opt ${answers[currentQIndex] === i ? 'selected' : ''}" onclick="selectOption(${i})">
-        <div class="quiz-20-opt-lbl">${String.fromCharCode(65 + i)}</div>
-        <div class="quiz-20-opt-text">${opt}</div>
-      </div>`).join('');
-
-    content.innerHTML = `
-    <div class="quiz-20-body">
-      <header class="quiz-20-header">
-        <div class="quiz-20-h-left">
-          <div class="quiz-20-h-icon">${test.icon.substring(0,1)}</div>
-          <div>
-            <div class="quiz-20-h-title">${test.title}</div>
-            <div class="quiz-20-h-sub">${test.tag || 'General'}</div>
-          </div>
-        </div>
-        <div class="quiz-20-h-center">
-          <div class="quiz-20-h-prog-lbl">${currentQIndex + 1} / ${n}</div>
-          <div class="quiz-20-h-prog-wrap"><div class="quiz-20-h-prog-fill" style="width:${((currentQIndex + 1) / n) * 100}%"></div></div>
-        </div>
-        <div class="quiz-20-h-right">
-          <div class="quiz-20-timer">
-            <div class="quiz-20-t-dot ${timeLeft < 300 ? 'quiz-20-t-dot-warn' : ''}"></div>
-            <div class="quiz-20-t-val ${timeLeft < 300 ? 'quiz-20-t-warn' : ''}" id="timer-display">${mins}:${secs}</div>
-          </div>
-          <button class="quiz-20-sub-btn" onclick="confirmSubmit()">Submit Test</button>
-        </div>
-      </header>
-
-      <div class="quiz-20-body-wrap">
-        <div class="quiz-20-main-wrap">
-          <div class="quiz-20-main-scroll">
-            <div class="quiz-20-q-meta">
-              <div class="quiz-20-q-badge">Q${currentQIndex + 1} / ${n}</div>
-              <div class="quiz-20-q-cat">${q.tag || 'General'}</div>
-              <div class="quiz-20-q-marks">+${test.perCorrect || 1} सही &nbsp;·&nbsp; −${test.negative || 0} गलत</div>
-            </div>
-            <div class="quiz-20-q-card">
-              <div class="quiz-20-q-num">प्रश्न ${String(currentQIndex + 1).padStart(3, '0')}</div>
-              <div class="quiz-20-q-text">${q.q}</div>
-            </div>
-            <div class="${anyLong ? 'quiz-20-opts' : 'quiz-20-opts-grid'}" id="options-list">${optionsHTML}</div>
-          </div>
-          <div class="quiz-20-bottom-nav">
-            <button class="quiz-20-nav-btn quiz-20-nav-prev" onclick="prevQuestion()" ${currentQIndex === 0 ? 'disabled' : ''}>← पिछला</button>
-            <div class="quiz-20-nav-center">${currentQIndex + 1} / ${n}</div>
-            <button class="quiz-20-nav-btn quiz-20-nav-next" onclick="${isLast ? 'confirmSubmit()' : 'nextQuestion()'}">${isLast ? 'Submit ✓' : 'अगला →'}</button>
-          </div>
-        </div>
-
-        <aside class="quiz-20-aside">
-          <div class="quiz-20-s-title">Question Palette</div>
-          <div class="quiz-20-stats-row">
-            <div class="quiz-20-stat quiz-20-stat-ans"><span class="quiz-20-stat-n">${answered}</span><span class="quiz-20-stat-l">Done</span></div>
-            <div class="quiz-20-stat quiz-20-stat-rem"><span class="quiz-20-stat-n">${n - answered}</span><span class="quiz-20-stat-l">Left</span></div>
-            <div class="quiz-20-stat quiz-20-stat-mrk"><span class="quiz-20-stat-n">${skipped.filter(Boolean).length}</span><span class="quiz-20-stat-l">Marked</span></div>
-          </div>
-          <div class="quiz-20-legend">
-            <div class="quiz-20-leg-item"><div class="quiz-20-leg-dot" style="background:linear-gradient(135deg,var(--violet),var(--pink))"></div>Current</div>
-            <div class="quiz-20-leg-item"><div class="legend-dot quiz-20-leg-dot" style="background:var(--greenbg);border:1px solid var(--greenbdr)"></div>Answered</div>
-            <div class="quiz-20-leg-item"><div class="legend-dot quiz-20-leg-dot" style="background:var(--amberbg);border:1px solid var(--amberbdr)"></div>Marked</div>
-            <div class="quiz-20-leg-item"><div class="legend-dot quiz-20-leg-dot" style="background:var(--glass);border:1px solid var(--gbdr)"></div>Unattempted</div>
-          </div>
-          <div class="quiz-20-pal-scroll"><div class="quiz-20-pal-inner">${palette}</div></div>
-          <div class="quiz-20-side-act-row">
-            <button class="quiz-20-side-act-btn quiz-20-side-clear" onclick="clearCurrentAnswer()">✕ उत्तर हटाएं</button>
-            <button class="quiz-20-side-act-btn quiz-20-side-mark" onclick="skipQuestion()">⚑ बाद में देखें</button>
-          </div>
-        </aside>
-      </div>
-
-      <button class="quiz-20-pal-toggle" onclick="toggleMobilePalette()">☰</button>
-      <div class="quiz-20-pal-sheet-overlay" id="sheet-overlay" onclick="toggleMobilePalette()"></div>
-      <div class="quiz-20-pal-sheet" id="pal-sheet">
-        <div class="quiz-20-pal-handle"></div>
-        <div class="quiz-20-pal-sheet-head">
-          <span class="quiz-20-pal-sheet-title">Question Palette</span>
-          <button class="quiz-20-pal-sheet-close" onclick="toggleMobilePalette()">×</button>
-        </div>
-        <div class="quiz-20-pal-sheet-stats">
-          <div class="quiz-20-pss quiz-20-pss-ans"><span class="quiz-20-pss-n">${answered}</span><span class="quiz-20-pss-l">Done</span></div>
-          <div class="quiz-20-pss quiz-20-pss-rem"><span class="quiz-20-pss-n">${n - answered}</span><span class="quiz-20-pss-l">Left</span></div>
-          <div class="quiz-20-pss quiz-20-pss-mrk"><span class="quiz-20-pss-n">${skipped.filter(Boolean).length}</span><span class="quiz-20-pss-l">Marked</span></div>
-        </div>
-        <div class="quiz-20-pal-sheet-grid">${palette}</div>
-        <div class="quiz-20-pal-sheet-acts">
-          <button class="quiz-20-psa quiz-20-psa-clear" onclick="clearCurrentAnswer();toggleMobilePalette()">✕ उत्तर हटाएं</button>
-          <button class="quiz-20-psa quiz-20-psa-mark" onclick="skipQuestion();toggleMobilePalette()">⚑ बाद में देखें</button>
-        </div>
-      </div>
-    </div>`;
-    return;
-  }
-
-  if (content) content.classList.remove('quiz-20-active');
-  if (overlay) overlay.classList.remove('quiz-20-active');
-
   const palette=test.questions.map((_,i)=>{
     let cls='';
     if(i===currentQIndex) cls='q-current';
@@ -561,7 +425,9 @@ function renderQuizScreen() {
     <div class="option-item ${answers[currentQIndex]===i?'selected':''} ${is5Opts?'opt-5':'opt-4'}" onclick="selectOption(${i})">
       <div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div>
     </div>`).join('');
+  const isLast=currentQIndex===n-1;
   // Design-C Quiz UI
+  const anyLong = q.opts.some(o => o.length > 40);
   content.innerHTML=`<div class="quiz-screen">
     <header class="quiz-topbar">
       <div class="quiz-title-wrap"><div class="quiz-title">${test.icon} ${test.title}</div></div>
@@ -632,56 +498,13 @@ function renderQuizScreen() {
   </div>`;
 }
 
-function toggleMobilePalette(){
-  const s=document.getElementById('quiz-sidebar');
-  if(s)s.classList.toggle('palette-open');
-  
-  const sheet = document.getElementById('pal-sheet');
-  const overlay = document.getElementById('sheet-overlay');
-  if(sheet) sheet.classList.toggle('open');
-  if(overlay) overlay.classList.toggle('open');
-}
+function toggleMobilePalette(){const s=document.getElementById('quiz-sidebar');if(s)s.classList.toggle('palette-open');}
 
 function selectOption(optIdx){
   answers[currentQIndex]=optIdx;
-  
-  // Auto-save to localStorage
-  if (currentTestId) {
-    localStorage.setItem(`exam_${currentTestId}_answers`, JSON.stringify(answers));
-  }
-
   const test=ALL_TESTS.find(t=>t.id===currentTestId),q=test.questions[currentQIndex],n=test.questions.length;
   const answered=answers.filter(a=>a!==-1).length;
   const optsList=document.getElementById('options-list');
-
-  if (n === 20) {
-    if(optsList) {
-      optsList.innerHTML=q.opts.map((opt,i)=>`
-        <div class="quiz-20-opt ${answers[currentQIndex]===i?'selected':''}" onclick="selectOption(${i})">
-          <div class="quiz-20-opt-lbl">${String.fromCharCode(65+i)}</div>
-          <div class="quiz-20-opt-text">${opt}</div>
-        </div>`).join('');
-    }
-    const paletteHTML = test.questions.map((_, i) => {
-      let cls = 'quiz-20-pbox';
-      if (i === currentQIndex) cls += ' current';
-      else if (answers[i] !== -1) cls += ' answered';
-      else if (skipped[i]) cls += ' marked';
-      return `<div class="${cls}" onclick="goToQuestion(${i})">${i + 1}</div>`;
-    }).join('');
-
-    const palettes = document.querySelectorAll('.quiz-20-pal-inner, .quiz-20-pal-sheet-grid');
-    palettes.forEach(p => p.innerHTML = paletteHTML);
-
-    const ansCounts = document.querySelectorAll('.quiz-20-stat-ans .quiz-20-stat-n, .quiz-20-pss-ans .quiz-20-pss-n');
-    ansCounts.forEach(c => c.textContent = answered);
-
-    const remCounts = document.querySelectorAll('.quiz-20-stat-rem .quiz-20-stat-n, .quiz-20-pss-rem .quiz-20-pss-n');
-    remCounts.forEach(c => c.textContent = n - answered);
-    
-    return;
-  }
-
   if(optsList) {
     const is5=q.opts.length===5;
     optsList.innerHTML=q.opts.map((opt,i)=>`<div class="option-item ${answers[currentQIndex]===i?'selected':''} ${is5?'opt-5':'opt-4'}" onclick="selectOption(${i})"><div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div></div>`).join('');
@@ -716,34 +539,13 @@ function startTimer(){
   timerInterval=setInterval(()=>{
     timeLeft--;
     const el=document.getElementById('timer-display'),wrap=document.getElementById('quiz-timer');
-    if(el){
-      el.textContent=`${Math.floor(timeLeft/60).toString().padStart(2,'0')}:${(timeLeft%60).toString().padStart(2,'0')}`;
-      if(wrap)wrap.className='quiz-timer'+(timeLeft<120?' danger':timeLeft<300?' warning':'');
-      
-      // Handle 20-question UI
-      const dot = document.querySelector('.quiz-20-t-dot');
-      if (el.classList.contains('quiz-20-t-val')) {
-        if (timeLeft < 300) {
-          el.classList.add('quiz-20-t-warn');
-          if (dot) dot.classList.add('quiz-20-t-dot-warn');
-        } else {
-          el.classList.remove('quiz-20-t-warn');
-          if (dot) dot.classList.remove('quiz-20-t-dot-warn');
-        }
-      }
-    }
+    if(el){el.textContent=`${Math.floor(timeLeft/60).toString().padStart(2,'0')}:${(timeLeft%60).toString().padStart(2,'0')}`;if(wrap)wrap.className='quiz-timer'+(timeLeft<120?' danger':timeLeft<300?' warning':'');}
     if(timeLeft<=0){clearInterval(timerInterval);submitTest(true);}
   },1000);
 }
 
 function submitTest(autoSubmit=false){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
-  
-  // Clear auto-save from localStorage
-  if (currentTestId) {
-    localStorage.removeItem(`exam_${currentTestId}_answers`);
-  }
-
   timeTaken=totalTime-timeLeft;
   const test=ALL_TESTS.find(t=>t.id===currentTestId);
   let score=0;test.questions.forEach((q,i)=>{if(answers[i]===q.ans)score++;});
@@ -760,146 +562,32 @@ function submitTest(autoSubmit=false){
 }
 
 function renderResultScreen(test,score,wrong,skippedParam,accuracy,rank,totalStudents,percentile){
-  const overlay = document.getElementById('modal-overlay');
-  const content = document.getElementById('modal-content');
-  
-  const is20 = test.questions.length === 20;
-
-  // Remove quiz-20-active (which is for full-screen quiz)
-  if (overlay) overlay.classList.remove('quiz-20-active');
-  if (content) content.classList.remove('quiz-20-active');
-
-  if (is20) {
-    if (overlay) overlay.classList.add('quiz-20-result-active');
-    if (content) content.classList.add('quiz-20-result-active');
-  } else {
-    if (overlay) overlay.classList.remove('quiz-20-result-active');
-    if (content) content.classList.remove('quiz-20-result-active');
-  }
-
   const timeMins=Math.floor(timeTaken/60).toString().padStart(2,'0'),timeSecs=(timeTaken%60).toString().padStart(2,'0');
   const totalMins=Math.floor(totalTime/60).toString().padStart(2,'0'),totalSecs=(totalTime%60).toString().padStart(2,'0');
   const C=2*Math.PI*25,rankFill=((totalStudents-rank)/totalStudents)*C,pctFill=(percentile/100)*C,accFill=(accuracy/100)*C;
   const scorePct=Math.round((score/test.questions.length)*100);
   const performLabel=scorePct>=80?'🏆 Excellent!':scorePct>=60?'👍 Good Job!':scorePct>=40?'📚 Keep Practicing':'💪 Needs Improvement';
-
-  if (is20) {
-    document.getElementById('modal-content').innerHTML = `
-      <div class="quiz-20-result-wrap">
-        <div class="quiz-20-res-header">
-          <div>
-            <div class="quiz-20-res-badge">📊 Overall Performance Summary</div>
-            <h2 class="quiz-20-res-title">${test.icon} ${test.title}</h2>
-            <p class="quiz-20-res-date">Attempted: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p>
-          </div>
-          <button class="quiz-20-res-close" onclick="closeModal()">✕</button>
-        </div>
-
-        <div class="quiz-20-score-card">
-          <div class="quiz-20-score-circle">
-            <span class="quiz-20-sc-val">${score}</span>
-            <span class="quiz-20-sc-total">/${test.questions.length}</span>
-          </div>
-          <div class="quiz-20-score-info">
-            <h3>${score}.0 <span>| ${test.questions.length}</span></h3>
-            <p>Your Score</p>
-            <div class="quiz-20-perf-tag">${performLabel}</div>
-          </div>
-        </div>
-
-        <div class="quiz-20-time-card">
-          <div class="quiz-20-time-icon">⏱</div>
-          <div class="quiz-20-time-info">
-            <h3>${timeMins}:${timeSecs} <span>| ${totalMins}:${totalSecs}</span></h3>
-            <p>Time Spent</p>
-          </div>
-        </div>
-
-        <div class="quiz-20-stats-trio">
-          <div class="quiz-20-trio-card">
-            <div class="quiz-20-trio-ring">
-              <svg viewBox="0 0 60 60" width="60" height="60">
-                <circle class="quiz-20-trio-ring-bg" cx="30" cy="30" r="25"/>
-                <circle class="quiz-20-trio-ring-fill" cx="30" cy="30" r="25" stroke="var(--violet)" stroke-dasharray="${C}" stroke-dashoffset="${C-rankFill}"/>
-              </svg>
-              <div class="quiz-20-trio-val-abs">${rank}</div>
-            </div>
-            <div class="quiz-20-trio-main" style="color:var(--violet)">${rank} <span class="quiz-20-trio-total">| ${totalStudents}</span></div>
-            <div class="quiz-20-trio-lbl">Your Rank</div>
-          </div>
-          <div class="quiz-20-trio-card">
-            <div class="quiz-20-trio-ring">
-              <svg viewBox="0 0 60 60" width="60" height="60">
-                <circle class="quiz-20-trio-ring-bg" cx="30" cy="30" r="25"/>
-                <circle class="quiz-20-trio-ring-fill" cx="30" cy="30" r="25" stroke="var(--pink)" stroke-dasharray="${C}" stroke-dashoffset="${C-pctFill}"/>
-              </svg>
-              <div class="quiz-20-trio-val-abs">${percentile}%</div>
-            </div>
-            <div class="quiz-20-trio-main" style="color:var(--pink)">${percentile} <span class="quiz-20-trio-total">| 100</span></div>
-            <div class="quiz-20-trio-lbl">Percentile</div>
-          </div>
-          <div class="quiz-20-trio-card">
-            <div class="quiz-20-trio-ring">
-              <svg viewBox="0 0 60 60" width="60" height="60">
-                <circle class="quiz-20-trio-ring-bg" cx="30" cy="30" r="25"/>
-                <circle class="quiz-20-trio-ring-fill" cx="30" cy="30" r="25" stroke="var(--cyan)" stroke-dasharray="${C}" stroke-dashoffset="${C-accFill}"/>
-              </svg>
-              <div class="quiz-20-trio-val-abs">${accuracy}%</div>
-            </div>
-            <div class="quiz-20-trio-main" style="color:var(--cyan)">${accuracy} <span class="quiz-20-trio-total">| 100</span></div>
-            <div class="quiz-20-trio-lbl">Accuracy</div>
-          </div>
-        </div>
-
-        <div class="quiz-20-res-actions">
-          <button class="quiz-20-btn-share" onclick="shareResult()">⬆ Share</button>
-          <button class="quiz-20-btn-reattempt" onclick="startTest(${test.id})">↩ Re-Attempt</button>
-        </div>
-
-        <div class="quiz-20-sec-sum">
-          <h3 class="quiz-20-sec-title">Sectional Summary</h3>
-          <div class="quiz-20-sec-grid">
-            <div class="quiz-20-sec-card quiz-20-sec-correct">
-              <span class="quiz-20-sec-num">${score}</span>
-              <span class="quiz-20-sec-lbl">Correct</span>
-            </div>
-            <div class="quiz-20-sec-card quiz-20-sec-wrong">
-              <span class="quiz-20-sec-num">${wrong}</span>
-              <span class="quiz-20-sec-lbl">Wrong</span>
-            </div>
-            <div class="quiz-20-sec-card quiz-20-sec-skip">
-              <span class="quiz-20-sec-num">${skippedParam}</span>
-              <span class="quiz-20-sec-lbl">Skipped</span>
-            </div>
-          </div>
-        </div>
-
-        <button class="quiz-20-view-sol" onclick="viewSolutions(${test.id})">📖 View Solutions</button>
+  document.getElementById('modal-content').innerHTML=`<div class="result-screen">
+    <div class="result-header">
+      <div><div class="result-header-badge">📊 Overall Performance Summary</div><h2 class="result-title">${test.icon} ${test.title}</h2><p class="result-sub">Attempted: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p></div>
+      <button class="btn-back modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="result-body">
+      <div class="score-card-big"><div class="score-circle"><span class="sc-big">${score}</span><span class="sc-small">/${test.questions.length}</span></div><div class="score-card-info"><h3>${score}.0 <span>| ${test.questions.length}</span></h3><p>Your Score</p><div class="perf-label">${performLabel}</div></div></div>
+      <div class="time-card"><div class="time-icon">⏱</div><div class="time-vals"><h3>${timeMins}:${timeSecs} <span>| ${totalMins}:${totalSecs}</span></h3><p>Time Spent</p></div></div>
+      <div class="stats-trio">
+        <div class="trio-card ring-rank"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-rankFill}"/></svg><div class="trio-val">${rank}</div></div><div class="trio-main" style="color:var(--gold)">${rank} <span class="trio-total">| ${totalStudents}</span></div><div class="trio-lbl">Your Rank</div></div>
+        <div class="trio-card ring-pct"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-pctFill}"/></svg><div class="trio-val">${percentile}%</div></div><div class="trio-main" style="color:var(--danger)">${percentile} <span class="trio-total">| 100</span></div><div class="trio-lbl">Percentile</div></div>
+        <div class="trio-card ring-acc"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-accFill}"/></svg><div class="trio-val">${accuracy}%</div></div><div class="trio-main" style="color:var(--info)">${accuracy} <span class="trio-total">| 100</span></div><div class="trio-lbl">Accuracy</div></div>
       </div>
-    `;
-  } else {
-    document.getElementById('modal-content').innerHTML=`<div class="result-screen">
-      <div class="result-header">
-        <div><div class="result-header-badge">📊 Overall Performance Summary</div><h2 class="result-title">${test.icon} ${test.title}</h2><p class="result-sub">Attempted: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p></div>
-        <button class="btn-back modal-close-btn" onclick="closeModal()">✕</button>
+      <div class="result-action-row"><button class="btn-share" onclick="shareResult()">⬆ Share</button><button class="btn-reattempt-big" onclick="startTest(${test.id})">↩ Re-Attempt</button></div>
+      <div class="sectional-summary">
+        <div class="section-title-bar"><h3>Sectional Summary</h3></div>
+        <div class="breakdown-row"><div class="bdown-card bdown-correct"><div class="bdown-num">${score}</div><div class="bdown-lbl">Correct</div></div><div class="bdown-card bdown-wrong"><div class="bdown-num">${wrong}</div><div class="bdown-lbl">Wrong</div></div><div class="bdown-card bdown-skip"><div class="bdown-num">${skippedParam}</div><div class="bdown-lbl">Skipped</div></div></div>
       </div>
-      <div class="result-body">
-        <div class="score-card-big"><div class="score-circle"><span class="sc-big">${score}</span><span class="sc-small">/${test.questions.length}</span></div><div class="score-card-info"><h3>${score}.0 <span>| ${test.questions.length}</span></h3><p>Your Score</p><div class="perf-label">${performLabel}</div></div></div>
-        <div class="time-card"><div class="time-icon">⏱</div><div class="time-vals"><h3>${timeMins}:${timeSecs} <span>| ${totalMins}:${totalSecs}</span></h3><p>Time Spent</p></div></div>
-        <div class="stats-trio">
-          <div class="trio-card ring-rank"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-rankFill}"/></svg><div class="trio-val">${rank}</div></div><div class="trio-main" style="color:var(--gold)">${rank} <span class="trio-total">| ${totalStudents}</span></div><div class="trio-lbl">Your Rank</div></div>
-          <div class="trio-card ring-pct"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-pctFill}"/></svg><div class="trio-val">${percentile}%</div></div><div class="trio-main" style="color:var(--danger)">${percentile} <span class="trio-total">| 100</span></div><div class="trio-lbl">Percentile</div></div>
-          <div class="trio-card ring-acc"><div class="trio-ring"><svg viewBox="0 0 60 60" width="60" height="60"><circle class="trio-ring-bg" cx="30" cy="30" r="25"/><circle class="trio-ring-fill" cx="30" cy="30" r="25" stroke-dasharray="${C}" stroke-dashoffset="${C-accFill}"/></svg><div class="trio-val">${accuracy}%</div></div><div class="trio-main" style="color:var(--info)">${accuracy} <span class="trio-total">| 100</span></div><div class="trio-lbl">Accuracy</div></div>
-        </div>
-        <div class="result-action-row"><button class="btn-share" onclick="shareResult()">⬆ Share</button><button class="btn-reattempt-big" onclick="startTest(${test.id})">↩ Re-Attempt</button></div>
-        <div class="sectional-summary">
-          <div class="section-title-bar"><h3>Sectional Summary</h3></div>
-          <div class="breakdown-row"><div class="bdown-card bdown-correct"><div class="bdown-num">${score}</div><div class="bdown-lbl">Correct</div></div><div class="bdown-card bdown-wrong"><div class="bdown-num">${wrong}</div><div class="bdown-lbl">Wrong</div></div><div class="bdown-card bdown-skip"><div class="bdown-num">${skippedParam}</div><div class="bdown-lbl">Skipped</div></div></div>
-        </div>
-        <button class="view-sol-btn" onclick="viewSolutions(${test.id})">📖 View Solutions</button>
-      </div>
-    </div>`;
-  }
+      <button class="view-sol-btn" onclick="viewSolutions(${test.id})">📖 View Solutions</button>
+    </div>
+  </div>`;
 }
 
 function viewSolutions(testId){
@@ -932,19 +620,6 @@ function copyToClipboard(text){
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',()=>{
-  // Dynamic Student Count
-  const baseCount = 12480;
-  const updateStudentCounts = () => {
-    const randomAdd = Math.floor(Math.random() * 5);
-    const newCount = (baseCount + randomAdd).toLocaleString();
-    ['hero', 'stat', 'why', 'footer'].forEach(id => {
-      const el = document.getElementById(`student-count-${id}`);
-      if (el) el.textContent = `${newCount}+`;
-    });
-  };
-  updateStudentCounts();
-  setInterval(updateStudentCounts, 15000);
-
   renderCategoryBar(); renderSubjectBar(); renderSectionTabs(); renderAdvancedFilters();
   const overlay=document.getElementById('modal-overlay');
   if(overlay){
