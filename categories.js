@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════
 // CATEGORIES.JS — Config-driven Exam & Subject System
-// SarkariMockTest
+// DataMinds Test Series
 // ═══════════════════════════════════════════════════════
 
 const EXAM_CATEGORIES = [
@@ -108,6 +108,7 @@ function isPremium(testId) { return PREMIUM_TEST_IDS.includes(testId); }
 
 // ── PYQ Test configs (Test ID 101+) ──
 // TEST_DIFFICULTY, TEST_RATINGS, TEST_ATTEMPT_COUNTS for PYQ tests
+// FIX: Copy-paste bug — wrong IDs were being used repeatedly (201 instead of 102/103 etc.)
 TEST_DIFFICULTY[101] = 'medium';
 TEST_RATINGS[101]    = 4.9;
 TEST_ATTEMPT_COUNTS[101] = 0;

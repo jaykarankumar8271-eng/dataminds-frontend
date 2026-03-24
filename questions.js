@@ -1,5 +1,5 @@
 // ============================================================
-// SarkariMockTest Test Series - Data Structures
+// DataMinds Test Series - Data Structures
 // Based on BPSC TRE 1.0/2.0/3.0/4.0 + Bihar STET CS PYQ Analysis
 // 20 Tests × 20 Questions = 400 Questions Total
 // ============================================================

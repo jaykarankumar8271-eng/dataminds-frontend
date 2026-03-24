@@ -1,7 +1,9 @@
 // ═══════════════════════════════════════════════════════
-// SarkariMockTest Admin Panel — admin.js
+// DataMinds Admin Panel — admin.js
 // ═══════════════════════════════════════════════════════
 
+// ⚙️ CENTRAL CONFIG — Change backend URL here only
+// Also update same in auth.js (line 7) when deploying
 const API_URL = 'https://dataminds-backend.onrender.com';
 
 // Test titles map
