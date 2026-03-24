@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════
 // CATEGORIES.JS — Config-driven Exam & Subject System
-// SarkariMockTest
+// DataMinds Test Series
 // ═══════════════════════════════════════════════════════
 
 const EXAM_CATEGORIES = [
@@ -105,30 +105,3 @@ function isUnlocked(testId) {
   return getUnlockedTests().includes(testId);
 }
 function isPremium(testId) { return PREMIUM_TEST_IDS.includes(testId); }
-
-// ── PYQ Test configs (Test ID 101+) ──
-// TEST_DIFFICULTY, TEST_RATINGS, TEST_ATTEMPT_COUNTS for PYQ tests
-TEST_DIFFICULTY[101] = 'medium';
-TEST_RATINGS[101]    = 4.9;
-TEST_ATTEMPT_COUNTS[101] = 0;
-
-TEST_DIFFICULTY[201] = 'medium';
-TEST_RATINGS[201]    = 4.9;
-TEST_ATTEMPT_COUNTS[201] = 0;
-
-TEST_DIFFICULTY[102] = 'medium';
-TEST_RATINGS[102]    = 4.9;
-TEST_ATTEMPT_COUNTS[102] = 0;
-
-TEST_DIFFICULTY[202] = 'medium';
-TEST_RATINGS[202]    = 4.9;
-TEST_ATTEMPT_COUNTS[202] = 0;
-
-TEST_DIFFICULTY[103] = 'medium';
-TEST_RATINGS[103]    = 4.9;
-TEST_ATTEMPT_COUNTS[103] = 0;
-
-TEST_DIFFICULTY[203] = 'medium';
-TEST_RATINGS[203]    = 4.9;
-TEST_ATTEMPT_COUNTS[203] = 0;
-

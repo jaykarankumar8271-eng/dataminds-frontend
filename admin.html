@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SarkariMockTest Admin Panel</title>
+<title>DataMinds Admin Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -182,7 +182,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <h1>SarkariMockTest</h1>
+      <h1>DataMinds</h1>
       <p>Admin Panel — Restricted Access</p>
     </div>
     <div class="form-group">
@@ -201,7 +201,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <!-- SIDEBAR -->
     <div class="admin-sidebar">
       <div class="sidebar-brand">
-        <h2>⚡ SarkariMockTest</h2>
+        <h2>⚡ DataMinds</h2>
         <p>Admin Panel v2.0</p>
       </div>
       <nav class="sidebar-nav">
@@ -299,33 +299,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
                 <strong style="color:var(--text2)">JSON Format (questions.json):</strong><br><br>
                 <code>[</code><br>
                 <code>&nbsp;&nbsp;{</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"test_id": 21,</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"test_id": 1,</code><br>
                 <code>&nbsp;&nbsp;&nbsp;&nbsp;"question_no": 1,</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"q": "Question text?",</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"options": ["Option A", "Option B", "Option C", "Option D"],</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"q": "What is the time complexity of binary search?",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"options": ["O(n)", "O(log n)", "O(n²)", "O(1)"],</code><br>
                 <code>&nbsp;&nbsp;&nbsp;&nbsp;"correct": 1,</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"explanation": "Explanation here.",</code><br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;"explanation": "Binary search divides array in half each time — O(log n).",</code><br>
                 <code>&nbsp;&nbsp;&nbsp;&nbsp;"topic": "Arrays",</code><br>
                 <code>&nbsp;&nbsp;&nbsp;&nbsp;"difficulty": "Easy"</code><br>
-                <code>&nbsp;&nbsp;},</code><br>
-                <code>&nbsp;&nbsp;{</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"test_id": 21,</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"question_no": 2,</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"q": "PYQ 5-option question?",</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"options": ["A", "B", "C", "D", "None of the above"],</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"correct": 4,</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"explanation": "Explanation.",</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"topic": "General",</code><br>
-                <code>&nbsp;&nbsp;&nbsp;&nbsp;"difficulty": "Medium"</code><br>
                 <code>&nbsp;&nbsp;}</code><br>
-                <code>]</code><br><br>
-                <span style="color:var(--success)">✅ 4 options: ["A","B","C","D"] &nbsp;|&nbsp; 5 options: ["A","B","C","D","E"]</span><br>
-                <span style="color:var(--warning)">⚠️ correct: 0=A, 1=B, 2=C, 3=D, 4=E</span>
+                <code>]</code>
               </div>
               <div class="format-box" style="margin-top:12px">
                 <strong style="color:var(--text2)">Excel Format (.xlsx) — Column headers (row 1):</strong><br><br>
-                <code>test_id</code> | <code>question_no</code> | <code>q</code> | <code>option_a</code> | <code>option_b</code> | <code>option_c</code> | <code>option_d</code> | <code>option_e</code> | <code>correct</code> | <code>explanation</code> | <code>topic</code> | <code>difficulty</code><br><br>
-                <span style="color:var(--warning)">⚠️ correct: 0=A, 1=B, 2=C, 3=D, 4=E &nbsp;|&nbsp; option_e is optional — leave blank for 4-option questions</span>
+                <code>test_id</code> | <code>question_no</code> | <code>q</code> | <code>option_a</code> | <code>option_b</code> | <code>option_c</code> | <code>option_d</code> | <code>correct</code> | <code>explanation</code> | <code>topic</code> | <code>difficulty</code><br><br>
+                <span style="color:var(--warning)">⚠️ correct column: 0=A, 1=B, 2=C, 3=D</span>
               </div>
             </div>
           </div>

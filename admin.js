@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// SarkariMockTest Admin Panel — admin.js
+// DataMinds Admin Panel — admin.js
 // ═══════════════════════════════════════════════════════
 
 const API_URL = 'https://dataminds-backend.onrender.com';
@@ -166,10 +166,7 @@ async function buildTestSelector() {
     }
   } catch {}
 
-  // Show T1-T20 + extra tests that have questions in DB
-  const dbTestIds = Object.keys(summary).map(Number).filter(n => summary[n] > 0 && n > 20);
-  const maxTest = dbTestIds.length > 0 ? Math.max(...dbTestIds) : 20;
-  for (let i = 1; i <= maxTest; i++) {
+  for (let i = 1; i <= 20; i++) {
     const hasQ = summary[i] > 0;
     const btn = document.createElement('button');
     btn.className = 'test-btn' + (hasQ ? ' has-q' : '') + (currentTestId === i ? ' active' : '');
@@ -367,20 +364,16 @@ function processFile(file) {
         const wb = XLSX.read(e.target.result, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws);
-        uploadData = rows.map(r => {
-          const opts = [String(r.option_a||''), String(r.option_b||''), String(r.option_c||''), String(r.option_d||'')];
-          if (r.option_e && String(r.option_e).trim()) opts.push(String(r.option_e));
-          return {
-            test_id: parseInt(r.test_id),
-            question_no: parseInt(r.question_no),
-            q: String(r.q || ''),
-            options: opts,
-            correct: parseInt(r.correct || 0),
-            explanation: String(r.explanation || ''),
-            topic: String(r.topic || ''),
-            difficulty: String(r.difficulty || 'Medium')
-          };
-        });
+        uploadData = rows.map(r => ({
+          test_id: parseInt(r.test_id),
+          question_no: parseInt(r.question_no),
+          q: String(r.q || ''),
+          options: [String(r.option_a||''), String(r.option_b||''), String(r.option_c||''), String(r.option_d||'')],
+          correct: parseInt(r.correct || 0),
+          explanation: String(r.explanation || ''),
+          topic: String(r.topic || ''),
+          difficulty: String(r.difficulty || 'Medium')
+        }));
         showUploadPreview(file.name, uploadData);
       } catch (err) {
         toast('Invalid Excel file: ' + err.message, 'error');
@@ -486,148 +479,65 @@ async function showUserTests(userId, userName) {
     const data = await api(`/api/admin/user-results/${userId}`);
     const results = data.results || [];
 
-    // ── COMPUTE STATS ──
-    const totalTests  = results.length;
-    const totalScore  = results.reduce((s,r) => s+(r.score||0), 0);
-    const totalWrong  = results.reduce((s,r) => s+(r.wrong||0), 0);
-    const totalSkip   = results.reduce((s,r) => s+(r.skipped||0), 0);
-    const avgAcc      = totalTests ? Math.round(results.reduce((s,r) => s+(r.accuracy||0), 0)/totalTests) : 0;
-    const bestScore   = totalTests ? Math.max(...results.map(r=>r.score||0)) : 0;
-    const bestTest    = results.find(r=>r.score===bestScore);
-    const totalTimeSec= results.reduce((s,r) => s+(r.time_taken||0), 0);
-    const totalTimeMins = Math.round(totalTimeSec/60);
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.onclick = e => { if(e.target===modal) modal.remove(); };
 
-    // ── TOPIC ANALYSIS ──
-    const topicMap = {};
-    results.forEach(r => {
-      const title = TEST_TITLES[r.test_id] || 'Test ' + r.test_id;
-      const pct = Math.round((r.score/r.total)*100);
-      topicMap[title] = { pct, score: r.score, total: r.total, test_id: r.test_id };
-    });
-    const topicEntries = Object.entries(topicMap).sort((a,b) => b[1].pct - a[1].pct);
-    const strong = topicEntries.filter(([,d]) => d.pct >= 60);
-    const weak   = topicEntries.filter(([,d]) => d.pct < 40);
-    const avg    = topicEntries.filter(([,d]) => d.pct >= 40 && d.pct < 60);
-
-    // ── SCORE BAR HTML ──
-    const scoreBarHTML = topicEntries.slice(0,8).map(([title, d]) => {
-      const color = d.pct>=60?'#10B981':d.pct>=40?'#F59E0B':'#EF4444';
-      return `
-        <div style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:12px;font-weight:600;color:var(--text2)">${title}</span>
-            <span style="font-size:12px;font-weight:700;color:${color}">${d.score}/${d.total} (${d.pct}%)</span>
-          </div>
-          <div style="height:6px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden">
-            <div style="height:100%;width:${d.pct}%;background:${color};border-radius:10px;transition:width .6s"></div>
-          </div>
-        </div>`;
-    }).join('');
-
-    // ── TEST HISTORY ROWS ──
-    const rows = totalTests === 0
-      ? '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">No tests attempted yet</td></tr>'
+    const rows = results.length === 0
+      ? '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No tests attempted yet</td></tr>'
       : results.map(r => {
           const pct = Math.round((r.score/r.total)*100);
-          const bc = pct>=60?'badge-green':pct>=40?'badge-yellow':'badge-red';
-          const date = r.attempted_at ? new Date(r.attempted_at).toLocaleDateString('en-IN') : 'N/A';
+          const color = pct>=60?'badge-green':pct>=40?'badge-yellow':'badge-red';
           return `<tr>
-            <td>
-              <strong style="font-size:13px">${TEST_TITLES[r.test_id] || 'Test '+r.test_id}</strong>
-              <div style="font-size:11px;color:var(--text3)">Test ${r.test_id}</div>
-            </td>
-            <td><span class="badge ${bc}">${r.score}/${r.total}</span></td>
-            <td style="color:#EF4444;font-weight:600">${r.wrong||0}</td>
-            <td style="color:#F59E0B;font-weight:600">${r.skipped||0}</td>
-            <td><span class="badge ${bc}">${r.accuracy}%</span></td>
-            <td style="font-size:12px;color:var(--text3)">${date}</td>
+            <td><strong>${TEST_TITLES[r.test_id] || "Test " + r.test_id}</strong><br><small style="color:var(--text3);font-size:11px">Test ${r.test_id}</small></td>
+            <td><span class="badge ${color}">${r.score}/${r.total}</span></td>
+            <td>${r.wrong || 0}</td>
+            <td>${r.skipped || 0}</td>
+            <td><span class="badge ${color}">${r.accuracy}%</span></td>
+            <td style="font-size:12px;color:var(--text3)">${r.attempted_at ? new Date(r.attempted_at).toLocaleDateString('en-IN') : 'N/A'}</td>
           </tr>`;
         }).join('');
 
-    // ── STRENGTH TAGS ──
-    const tagHTML = (arr, cls, emoji) => arr.length
-      ? arr.map(([t,d]) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin:3px;background:${cls.bg};color:${cls.color};border:1px solid ${cls.border}">${emoji} ${t.split(' ').slice(0,3).join(' ')} (${d.pct}%)</span>`).join('')
-      : `<span style="font-size:12px;color:var(--text3)">None yet</span>`;
-
-    const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
-    modal.onclick = e => { if(e.target===modal) modal.remove(); };
+    const totalScore = results.reduce((s,r)=>s+(r.score||0),0);
+    const avgAcc = results.length ? Math.round(results.reduce((s,r)=>s+(r.accuracy||0),0)/results.length) : 0;
 
     modal.innerHTML = `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:860px;overflow:hidden;margin:auto">
-
-        <!-- HEADER -->
-        <div style="background:linear-gradient(135deg,#1E2535,#111827);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:14px">
-            <div style="width:48px;height:48px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff">
-              ${userName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}
+      <div class="modal-box" style="max-width:700px">
+        <div class="modal-header">
+          <h3>📊 ${userName} — Test History</h3>
+          <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+        </div>
+        <div class="modal-body" style="padding:0">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:800;color:var(--accent)">${results.length}</div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase">Tests Done</div>
             </div>
-            <div>
-              <div style="font-size:18px;font-weight:800;color:var(--text)">${userName}</div>
-              <div style="font-size:12px;color:var(--text3)">Student Dashboard — Admin View</div>
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:800;color:var(--success)">${totalScore}</div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase">Total Score</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:800;color:var(--info)">${avgAcc}%</div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase">Avg Accuracy</div>
             </div>
           </div>
-          <button onclick="this.closest('[style*=fixed]').remove()" style="background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Score</th>
+                <th>Wrong</th>
+                <th>Skipped</th>
+                <th>Accuracy</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
         </div>
-
-        <!-- STATS GRID -->
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-bottom:1px solid var(--border)">
-          ${[
-            ['📝', totalTests, 'Tests Done', 'var(--accent)'],
-            ['🎯', avgAcc+'%', 'Avg Accuracy', avgAcc>=60?'var(--success)':avgAcc>=40?'var(--warning)':'var(--danger)'],
-            ['🏅', bestScore+'/20', 'Best Score', 'var(--info)'],
-            ['📊', totalScore, 'Total Score', '#A78BFA'],
-            ['⏱️', totalTimeMins+'m', 'Time Spent', '#FB923C'],
-          ].map(([icon,val,lbl,col]) => `
-            <div style="padding:18px 12px;text-align:center;border-right:1px solid var(--border)">
-              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${icon}</div>
-              <div style="font-size:22px;font-weight:800;color:${col}">${val}</div>
-              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">${lbl}</div>
-            </div>`).join('')}
-        </div>
-
-        <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
-
-          <!-- PROGRESS BARS -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">📈 Topic-wise Progress</div>
-            ${topicEntries.length ? scoreBarHTML : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No data yet</div>'}
-          </div>
-
-          <!-- STRENGTH ANALYSIS -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">🎯 Strength Analysis</div>
-            <div style="margin-bottom:12px">
-              <div style="font-size:11px;font-weight:700;color:#10B981;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💪 Strong (60%+)</div>
-              <div>${tagHTML(strong, {bg:'rgba(16,185,129,.12)',color:'#10B981',border:'rgba(16,185,129,.25)'}, '✅')}</div>
-            </div>
-            <div style="margin-bottom:12px">
-              <div style="font-size:11px;font-weight:700;color:#F59E0B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📖 Average (40-59%)</div>
-              <div>${tagHTML(avg, {bg:'rgba(245,158,11,.1)',color:'#F59E0B',border:'rgba(245,158,11,.2)'}, '📌')}</div>
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:700;color:#EF4444;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⚠️ Weak (below 40%)</div>
-              <div>${tagHTML(weak, {bg:'rgba(239,68,68,.1)',color:'#EF4444',border:'rgba(239,68,68,.2)'}, '❗')}</div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- TEST HISTORY TABLE -->
-        <div style="padding:0 24px 24px">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-            <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)">
-              📋 Complete Test History
-            </div>
-            <table class="admin-table">
-              <thead><tr><th>Test</th><th>Score</th><th>Wrong</th><th>Skipped</th><th>Accuracy</th><th>Date</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        </div>
-
       </div>`;
-
     document.body.appendChild(modal);
   } catch(err) {
     toast('Failed to load: ' + err.message, 'error');

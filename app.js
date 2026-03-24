@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// APP.JS — Upgraded SarkariMockTest (v2.0)
+// APP.JS — Upgraded DataMinds (v2.0)
 // ═══════════════════════════════════════════════════════
 
 let currentTestId    = null;
@@ -8,7 +8,7 @@ let answers          = [];
 let skipped          = [];
 let timerInterval    = null;
 let timeLeft         = 0;
-let totalTime        = 20 * 60; // will be set dynamically per test
+const totalTime      = 20 * 60;
 let timeTaken        = 0;
 let currentFilter    = 'all';
 let currentSection   = 'topic';
@@ -17,48 +17,6 @@ let currentSubject   = 'cs';
 let searchQuery      = '';
 let difficultyFilter = 'all';
 let premiumFilter    = 'all';
-
-// ── LOAD DB QUESTIONS for tests with empty questions array ──
-async function loadDBQuestions(testId) {
-  try {
-    const res = await fetch(`${typeof API_URL !== 'undefined' ? API_URL : 'https://dataminds-backend.onrender.com'}/api/questions/${testId}`);
-    const data = await res.json();
-    if (data.success && data.questions && data.questions.length > 0) {
-      return data.questions.map(q => ({
-        q: q.q,
-        opts: q.options,
-        ans: q.correct,
-        tag: q.topic || 'General',
-        exp: q.explanation || ''
-      }));
-    }
-  } catch(e) { console.warn('DB questions load failed:', e); }
-  return null;
-}
-
-// Override openTestIntro to load DB questions if needed
-const _origOpenTestIntro = typeof openTestIntro !== 'undefined' ? openTestIntro : null;
-
-async function openTestIntroWithDB(testId) {
-  const test = ALL_TESTS.find(t => t.id === testId);
-  // Load from DB if questions array is empty (DB-based tests like TPYQ series)
-  if (test && (!test.questions || test.questions.length === 0)) {
-    showToast('Loading questions... ⏳');
-    const dbQuestions = await loadDBQuestions(testId);
-    if (dbQuestions && dbQuestions.length > 0) {
-      test.questions = dbQuestions;
-      // Update totalQuestions to actual count from DB
-      if (!test.totalQuestions || test.totalQuestions !== dbQuestions.length) {
-        test.totalQuestions = dbQuestions.length;
-      }
-      showToast(`✅ ${dbQuestions.length} questions loaded!`);
-    } else {
-      showToast('❌ No questions found for this test!', 'error');
-      return;
-    }
-  }
-  openTestIntro(testId);
-}
 
 function loadResults() {
   if (typeof getUserResults === 'function') return getUserResults();
@@ -135,19 +93,16 @@ function renderSectionTabs() {
 }
 
 function switchSection(secId) {
-  currentSection = secId;
-  renderSectionTabs();
-  if (secId === 'full') {
-    const grid = document.getElementById('tests-grid');
-    if (grid) grid.innerHTML = `<div class="coming-soon-state">
-      <div class="cs-icon">📋</div>
-      <h3>Full Length Mock Tests</h3>
-      <p>Coming soon! We're preparing high-quality full-length mock tests for you.</p>
-      <button class="btn-primary-sm" onclick="switchSection('topic')">← Back to Topic Tests</button>
-    </div>`;
-    return;
-  }
-  renderTests(currentFilter);
+  currentSection = secId; renderSectionTabs();
+  if (secId === 'topic') { renderTests(currentFilter); return; }
+  const grid = document.getElementById('tests-grid');
+  if (!grid) return;
+  grid.innerHTML = `<div class="coming-soon-state">
+    <div class="cs-icon">${secId==='full'?'📋':'🗂️'}</div>
+    <h3>${secId==='full'?'Full Length Mock Tests':'Previous Year Questions'}</h3>
+    <p>Coming soon! High-quality ${secId==='full'?'full-length mock tests':'PYQ papers'} being prepared.</p>
+    <button class="btn-primary-sm" onclick="switchSection('topic')">← Back to Topic Tests</button>
+  </div>`;
 }
 
 // ── ADVANCED FILTERS ──
@@ -175,18 +130,14 @@ function setPremiumFilter(val) { premiumFilter=val; renderAdvancedFilters(); ren
 // ── RENDER TESTS ──
 function renderTests(filter='all') {
   currentFilter = filter;
+  if (currentSection !== 'topic') return;
   const results   = loadResults();
   const grid      = document.getElementById('tests-grid');
   if (!grid) return;
   grid.innerHTML  = '';
   const bookmarks = getBookmarks();
 
-  // Topic-wise: T1-T20, PYQ: T100+
-  const baseTests = currentSection === 'pyq'
-    ? ALL_TESTS.filter(t => t.id >= 100)
-    : ALL_TESTS.filter(t => t.id < 100);
-
-  let list = baseTests.filter(t => {
+  let list = ALL_TESTS.filter(t => {
     const attempted  = !!results[t.id];
     const bookmarked = bookmarks.includes(t.id);
     const diff       = TEST_DIFFICULTY[t.id] || 'medium';
@@ -217,7 +168,7 @@ function renderTests(filter='all') {
     const res        = results[test.id];
     const attempted  = !!res;
     const score      = attempted ? res.score : 0;
-    const total      = test.totalQuestions || test.questions.length;
+    const total      = test.questions.length;
     const pct        = attempted ? Math.round((score/total)*100) : 0;
     const diff       = TEST_DIFFICULTY[test.id] || 'medium';
     const premium    = isPremium(test.id);
@@ -248,7 +199,7 @@ function renderTests(filter='all') {
       <div class="card-tags">
         <span class="diff-badge" style="background:${diffCfg.bg};color:${diffCfg.color}">${diffCfg.label}</span>
         <span class="meta-item"><span class="meta-icon">❓</span>${total} Qs</span>
-        <span class="meta-item"><span class="meta-icon">⏱️</span>${test.timeLimit||20} Min</span>
+        <span class="meta-item"><span class="meta-icon">⏱️</span>20 Min</span>
         <span class="meta-item"><span class="meta-icon">👥</span>${attempts.toLocaleString()}</span>
         <span class="meta-item"><span class="meta-icon">⭐</span>${rating}</span>
       </div>
@@ -258,7 +209,7 @@ function renderTests(filter='all') {
         </div>
         ${premium&&!unlocked
           ?`<button class="btn-unlock" onclick="openPaymentModal(${test.id})">🔓 Unlock ₹99</button>`
-          :`<button class="btn-${attempted?'reattempt':'start'}" onclick="(typeof openTestIntroWithDB!=='undefined'&&(!ALL_TESTS.find(t=>t.id===${test.id})?.questions?.length)?openTestIntroWithDB:openTestIntro)(${test.id})">${attempted?'↩ Re-Attempt':'▶ Start Test'}</button>`}
+          :`<button class="btn-${attempted?'reattempt':'start'}" onclick="openTestIntro(${test.id})">${attempted?'↩ Re-Attempt':'▶ Start Test'}</button>`}
       </div>`;
     grid.appendChild(card);
   });
@@ -312,14 +263,14 @@ async function initiatePayment(testId) {
   const test = ALL_TESTS.find(t=>t.id===testId);
   showToast('⏳ Initializing payment...');
   try {
-    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:'https://dataminds-backend.onrender.com'}/api/payment/create-order`,{
+    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:''}/api/payment/create-order`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${getToken()}`},
       body:JSON.stringify({test_id:testId,amount:9900})
     });
     if(!res.ok) throw new Error('failed');
     const {order_id,key_id} = await res.json();
     const options = {
-      key:key_id,amount:9900,currency:'INR',name:'SarkariMockTest',
+      key:key_id,amount:9900,currency:'INR',name:'DataMinds',
       description:`Unlock: ${test.title}`,order_id,
       handler:async(response)=>{await verifyPayment(response,testId);},
       theme:{color:'#FF6B35'},modal:{ondismiss:()=>showToast('Payment cancelled')}
@@ -338,7 +289,7 @@ async function initiatePayment(testId) {
 
 async function verifyPayment(response, testId) {
   try {
-    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:'https://dataminds-backend.onrender.com'}/api/payment/verify`,{
+    const res = await fetch(`${typeof API_URL!=='undefined'?API_URL:''}/api/payment/verify`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${getToken()}`},
       body:JSON.stringify({...response,test_id:testId})
     });
@@ -368,14 +319,14 @@ function openTestIntro(testId) {
     <div class="intro-body">
       ${prev?`<div class="prev-attempt-banner"><span>📊 Previous:</span><strong>${prev.score}/${prev.total} (${Math.round(prev.score/prev.total*100)}%)</strong><span style="color:var(--text-muted)">· ${prev.date}</span></div>`:''}
       <div class="intro-stats-row">
-        <div class="istat"><div class="istat-val">${test.totalQuestions||test.questions?.length||20}</div><div class="istat-lbl">Questions</div></div>
-        <div class="istat"><div class="istat-val">${test.timeLimit||20}</div><div class="istat-lbl">Minutes</div></div>
-        <div class="istat"><div class="istat-val">+${test.perCorrect||1}</div><div class="istat-lbl">Per Correct</div></div>
-        <div class="istat"><div class="istat-val">${test.negative||0}</div><div class="istat-lbl">Negative</div></div>
+        <div class="istat"><div class="istat-val">20</div><div class="istat-lbl">Questions</div></div>
+        <div class="istat"><div class="istat-val">20</div><div class="istat-lbl">Minutes</div></div>
+        <div class="istat"><div class="istat-val">+1</div><div class="istat-lbl">Per Correct</div></div>
+        <div class="istat"><div class="istat-val">0</div><div class="istat-lbl">Negative</div></div>
       </div>
       <div class="intro-rules">
         <h3>📋 Exam Instructions</h3>
-        <div class="rule-item"><div class="rule-dot"></div><span>${test.totalQuestions || test.questions?.length || 20} MCQs from topic: <strong>${test.topic}</strong></span></div>
+        <div class="rule-item"><div class="rule-dot"></div><span>20 MCQs from topic: <strong>${test.topic}</strong></span></div>
         <div class="rule-item"><div class="rule-dot"></div><span>Timer starts when you click 'Begin Test'</span></div>
         <div class="rule-item"><div class="rule-dot"></div><span>Each correct: <strong>+1 mark</strong>. No negative marking.</span></div>
         <div class="rule-item"><div class="rule-dot"></div><span>Based on <strong>BPSC TRE 1.0/2.0/3.0/4.0</strong> PYQ patterns</span></div>
@@ -401,9 +352,6 @@ function startTest(testId) {
   const test=ALL_TESTS.find(t=>t.id===testId);
   answers=new Array(test.questions.length).fill(-1);
   skipped=new Array(test.questions.length).fill(false);
-  // Set time dynamically based on test config
-  const _test = ALL_TESTS.find(t=>t.id===testId);
-  totalTime = (_test?.timeLimit || 20) * 60;
   timeLeft=totalTime; renderQuizScreen(); startTimer();
 }
 
@@ -420,79 +368,48 @@ function renderQuizScreen() {
     else if(skipped[i]) cls='q-skipped';
     return `<div class="q-dot ${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;
   }).join('');
-  const is5Opts = q.opts.length === 5;
   const optionsHTML=q.opts.map((opt,i)=>`
-    <div class="option-item ${answers[currentQIndex]===i?'selected':''} ${is5Opts?'opt-5':'opt-4'}" onclick="selectOption(${i})">
+    <div class="option-item ${answers[currentQIndex]===i?'selected':''}" onclick="selectOption(${i})">
       <div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div>
     </div>`).join('');
   const isLast=currentQIndex===n-1;
-  // Design-C Quiz UI
-  const anyLong = q.opts.some(o => o.length > 40);
   content.innerHTML=`<div class="quiz-screen">
-    <header class="quiz-topbar">
+    <div class="quiz-topbar">
       <div class="quiz-title-wrap"><div class="quiz-title">${test.icon} ${test.title}</div></div>
-      <div class="quiz-topbar-center">
-        <div class="quiz-prog-lbl">${currentQIndex+1} / ${n}</div>
-        <div class="quiz-prog-wrap"><div class="quiz-prog-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div class="quiz-timer ${timerClass}" id="quiz-timer">
-          <div class="timer-icon"></div>
-          <span id="timer-display">${mins}:${secs}</span>
-        </div>
-        <button class="btn-submit-test" onclick="confirmSubmit()">Submit Test</button>
-      </div>
-    </header>
+      <div class="quiz-timer ${timerClass}" id="quiz-timer"><span class="timer-icon">⏱</span><span id="timer-display">${mins}:${secs}</span></div>
+    </div>
     <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${((currentQIndex+1)/n)*100}%"></div></div>
     <div class="mobile-palette-bar">
       <span class="q-number-m">Q${currentQIndex+1}/${n}</span>
-      <button class="mobile-palette-toggle" onclick="toggleMobilePalette()">☰ Palette (${answered}/${n})</button>
+      <button class="mobile-palette-toggle" onclick="toggleMobilePalette()">📋 Palette (${answered}/${n})</button>
     </div>
     <div class="quiz-body">
       <div class="quiz-main">
-        <div class="quiz-main-scroll">
-          <div class="question-header">
-            <div class="q-number">Q${currentQIndex+1} / ${n}</div>
-            <div class="q-tag">${q.tag||'General'}</div>
-            ${test.negative?`<div class="q-marks-badge">+${test.perCorrect||1} सही &nbsp;·&nbsp; −${test.negative} गलत</div>`:''}
-          </div>
-          <div class="question-card">
-            <div class="q-num-label">प्रश्न ${String(currentQIndex+1).padStart(3,'0')}</div>
-            <div class="question-text">${q.q}</div>
-          </div>
-          <div class="${anyLong?'options-list':'opts-grid'}" id="options-list">${optionsHTML}</div>
-        </div>
-        <div class="quiz-footer">
-          <div class="quiz-footer-btns">
-            ${currentQIndex>0?`<button class="btn-cancel" onclick="prevQuestion()">← पिछला</button>`:''}
-            <div class="footer-q-num">${currentQIndex+1} / ${n}</div>
-            <button class="btn-skip" onclick="skipQuestion()">बाद में ⚑</button>
-            ${isLast?`<button class="btn-next" onclick="confirmSubmit()">Submit ✓</button>`:`<button class="btn-next" onclick="nextQuestion()">अगला →</button>`}
-          </div>
-        </div>
+        <div class="question-header"><span class="q-number">Q${currentQIndex+1} <span style="color:var(--text-muted)">/ ${n}</span></span><span class="q-tag">${q.tag}</span></div>
+        <div class="question-text">${q.q}</div>
+        <div class="options-list" id="options-list">${optionsHTML}</div>
       </div>
       <div class="quiz-sidebar" id="quiz-sidebar">
-        <div class="sidebar-header-row">
-          <div class="sidebar-title">Question Palette</div>
-          <button class="sidebar-close-mobile" onclick="toggleMobilePalette()">✕</button>
-        </div>
-        <div class="sidebar-stats">
-          <div class="sstat sstat-ans"><span class="sstat-n" id="s-ans">${answered}</span><span class="sstat-l">Done</span></div>
-          <div class="sstat sstat-rem"><span class="sstat-n" id="s-rem">${n-answered}</span><span class="sstat-l">Left</span></div>
-          <div class="sstat sstat-mrk"><span class="sstat-n" id="s-mrk">${skipped.filter(Boolean).length}</span><span class="sstat-l">Skipped</span></div>
-        </div>
+        <div class="sidebar-header-row"><div class="sidebar-title">Question Palette</div><button class="sidebar-close-mobile" onclick="toggleMobilePalette()">✕</button></div>
+        <div class="q-palette">${palette}</div>
         <div class="sidebar-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#a855f7,#ec4899)"></div>Current</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3)"></div>Answered</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)"></div>Skipped</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)"></div>Unattempted</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Current</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(46,204,113,0.5);border:1px solid #2ECC71"></div>Answered</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(243,156,18,0.3);border:1px solid #F39C12"></div>Skipped</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#2A2F50"></div>Not Visited</div>
         </div>
-        <div class="q-palette" id="quiz-palette">${palette}</div>
         <div class="sidebar-submit-section">
-          <div class="answered-count">Answered: <strong style="color:#4ade80">${answered}</strong> / ${n}</div>
+          <div class="answered-count">Answered: <strong style="color:var(--success)">${answered}</strong> / ${n}</div>
           <button class="btn-submit-test" onclick="confirmSubmit()">✓ Submit Test</button>
-          <button class="btn-clear-ans" onclick="clearCurrentAnswer()">✕ उत्तर हटाएं</button>
         </div>
+      </div>
+    </div>
+    <div class="quiz-footer">
+      <div class="quiz-footer-info">Question ${currentQIndex+1} of ${n}</div>
+      <div class="quiz-footer-btns">
+        ${currentQIndex>0?`<button class="btn-cancel" onclick="prevQuestion()">← Prev</button>`:''}
+        <button class="btn-skip" onclick="skipQuestion()">Skip →</button>
+        ${isLast?`<button class="btn-submit-test" onclick="confirmSubmit()">Submit ✓</button>`:`<button class="btn-next" onclick="nextQuestion()">Next →</button>`}
       </div>
     </div>
   </div>`;
@@ -505,22 +422,16 @@ function selectOption(optIdx){
   const test=ALL_TESTS.find(t=>t.id===currentTestId),q=test.questions[currentQIndex],n=test.questions.length;
   const answered=answers.filter(a=>a!==-1).length;
   const optsList=document.getElementById('options-list');
-  if(optsList) {
-    const is5=q.opts.length===5;
-    optsList.innerHTML=q.opts.map((opt,i)=>`<div class="option-item ${answers[currentQIndex]===i?'selected':''} ${is5?'opt-5':'opt-4'}" onclick="selectOption(${i})"><div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div></div>`).join('');
-  }
+  if(optsList) optsList.innerHTML=q.opts.map((opt,i)=>`<div class="option-item ${answers[currentQIndex]===i?'selected':''}" onclick="selectOption(${i})"><div class="option-label">${String.fromCharCode(65+i)}</div><div class="option-text">${opt}</div></div>`).join('');
   const palette=document.querySelector('.q-palette');
   if(palette) palette.innerHTML=test.questions.map((_,i)=>{let cls='';if(i===currentQIndex)cls='q-current';else if(answers[i]!==-1)cls='q-answered';else if(skipped[i])cls='q-skipped';return `<div class="q-dot ${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;}).join('');
-  const ac=document.querySelector('.answered-count');if(ac)ac.innerHTML=`Answered: <strong style="color:#4ade80">${answered}</strong> / ${n}`;
-  const mb=document.querySelector('.mobile-palette-toggle');if(mb)mb.textContent=`☰ Palette (${answered}/${n})`;
-  const sa=document.getElementById('s-ans');if(sa)sa.textContent=answered;
-  const sr=document.getElementById('s-rem');if(sr)sr.textContent=n-answered;
+  const ac=document.querySelector('.answered-count');if(ac)ac.innerHTML=`Answered: <strong style="color:var(--success)">${answered}</strong> / ${n}`;
+  const mb=document.querySelector('.mobile-palette-toggle');if(mb)mb.textContent=`📋 Palette (${answered}/${n})`;
 }
 
 function nextQuestion(){const test=ALL_TESTS.find(t=>t.id===currentTestId);if(currentQIndex<test.questions.length-1){currentQIndex++;renderQuizScreen();}}
 function prevQuestion(){if(currentQIndex>0){currentQIndex--;renderQuizScreen();}}
 function skipQuestion(){skipped[currentQIndex]=true;const test=ALL_TESTS.find(t=>t.id===currentTestId);if(currentQIndex<test.questions.length-1)currentQIndex++;renderQuizScreen();}
-function clearCurrentAnswer(){answers[currentQIndex]=-1;skipped[currentQIndex]=false;renderQuizScreen();}
 function goToQuestion(idx){currentQIndex=idx;const s=document.getElementById('quiz-sidebar');if(s)s.classList.remove('palette-open');renderQuizScreen();}
 
 function confirmSubmit(){
@@ -528,8 +439,7 @@ function confirmSubmit(){
   const answered=answers.filter(a=>a!==-1).length,unanswered=test.questions.length-answered;
   if(unanswered>0){
     const o=document.createElement('div');o.className='confirm-overlay';o.style.zIndex='6000';
-    const a2=answers.filter(a=>a!==-1).length,sk2=skipped.filter(Boolean).length;
-    o.innerHTML=`<div class="confirm-box"><h2>Submit करें?</h2><p>आपने <strong style="color:#4ade80">${a2}</strong> प्रश्न हल किए, <strong style="color:#fbbf24">${sk2}</strong> छोड़े, <strong style="color:#f87171">${unanswered}</strong> अनुत्तरित।</p><div class="confirm-btns"><button class="btn-outline-sm" onclick="this.closest('.confirm-overlay').remove()">वापस जाएं</button><button class="btn-auth-submit" onclick="this.closest('.confirm-overlay').remove();submitTest()">हाँ, Submit करें</button></div></div>`;
+    o.innerHTML=`<div class="confirm-box"><h3>⚠️ Submit Test?</h3><p>You have <strong style="color:var(--warning)">${unanswered} unanswered</strong> question(s).</p><div class="confirm-btns"><button class="btn-outline-sm" onclick="this.closest('.confirm-overlay').remove()">Continue</button><button class="btn-auth-submit" style="max-width:160px" onclick="this.closest('.confirm-overlay').remove();submitTest()">Submit Anyway</button></div></div>`;
     document.body.appendChild(o);
   } else { submitTest(); }
 }
@@ -610,8 +520,8 @@ function goBackToResult(testId){
 
 function shareResult(){
   const test=ALL_TESTS.find(t=>t.id===currentTestId),results=loadResults(),res=results[currentTestId];
-  const txt=`📊 SarkariMockTest Result\n${test?test.title:'Test'}\nScore: ${res?.score||0}/${res?.total||20}\nAccuracy: ${res?.accuracy||0}%\n🎯 BPSC TRE 4.0 Prep!\n#SarkariMockTest #BPSC_TRE4`;
-  if(navigator.share)navigator.share({title:'SarkariMockTest Result',text:txt}).catch(()=>copyToClipboard(txt));else copyToClipboard(txt);
+  const txt=`📊 DataMinds Result\n${test?test.title:'Test'}\nScore: ${res?.score||0}/${res?.total||20}\nAccuracy: ${res?.accuracy||0}%\n🎯 BPSC TRE 4.0 Prep!\n#DataMinds #BPSC_TRE4`;
+  if(navigator.share)navigator.share({title:'DataMinds Result',text:txt}).catch(()=>copyToClipboard(txt));else copyToClipboard(txt);
 }
 function copyToClipboard(text){
   if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>showToast('✅ Copied!'));
@@ -747,16 +657,15 @@ function setSidebarDiff(d) {
 function switchProSection(sec) {
   document.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
   document.getElementById('ctab-' + sec)?.classList.add('active');
-  proCurrentSection = sec;
   currentSection = sec;
 
-  if (sec === 'full') {
+  if (sec !== 'topic') {
     const grid = document.getElementById('pro-tests-grid');
     if (grid) grid.innerHTML = `
       <div class="coming-soon-pro">
-        <div class="cs-icon">📋</div>
-        <h3>Full Length Mock Tests</h3>
-        <p>Coming soon! We're preparing high-quality full-length mock tests for you.</p>
+        <div class="cs-icon">${sec === 'full' ? '📋' : '🗂️'}</div>
+        <h3>${sec === 'full' ? 'Full Length Mock Tests' : 'Previous Year Questions'}</h3>
+        <p>Coming soon! We're preparing high-quality ${sec === 'full' ? 'full-length mock tests' : 'PYQ papers'} for you.</p>
         <button class="btn-primary-sm" onclick="switchProSection('topic')">← Back to Topic Tests</button>
       </div>`;
     return;
@@ -765,7 +674,6 @@ function switchProSection(sec) {
 }
 
 let proSearchQuery = '';
-let proCurrentSection = 'topic';
 function proSearch(q) { proSearchQuery = q; renderProTests(); }
 
 function renderProTests() {
@@ -776,12 +684,7 @@ function renderProTests() {
   const results   = loadResults();
   const bookmarks = getBookmarks();
 
-  // Topic-wise: T1-T20, PYQ: T100+
-  const BASE = proCurrentSection === 'pyq'
-    ? ALL_TESTS.filter(t => t.id >= 100)
-    : ALL_TESTS.filter(t => t.id < 100);
-
-  let list = BASE.filter(t => {
+  let list = ALL_TESTS.filter(t => {
     const attempted  = !!results[t.id];
     const bookmarked = bookmarks.includes(t.id);
     const diff       = TEST_DIFFICULTY[t.id] || 'medium';
@@ -819,7 +722,7 @@ function renderProTests() {
     const res        = results[test.id];
     const attempted  = !!res;
     const score      = attempted ? res.score : 0;
-    const total      = test.totalQuestions || test.questions.length;
+    const total      = test.questions.length;
     const pct        = attempted ? Math.round((score / total) * 100) : 0;
     const diff       = TEST_DIFFICULTY[test.id] || 'medium';
     const premium    = isPremium(test.id);
@@ -854,7 +757,7 @@ function renderProTests() {
         <div class="tcp-meta">
           <span class="tcp-diff ${diff}">${diff.charAt(0).toUpperCase() + diff.slice(1)}</span>
           <span class="tcp-info">❓ ${total} Qs</span>
-          <span class="tcp-info">⏱ ${test.timeLimit||20} Min</span>
+          <span class="tcp-info">⏱ 20 Min</span>
           <span class="tcp-info">👥 ${attempts.toLocaleString()}</span>
         </div>
 
@@ -871,7 +774,7 @@ function renderProTests() {
         </div>
         ${premium && !unlocked
           ? `<button class="tcp-btn tcp-btn-unlock" onclick="openPaymentModal(${test.id})">🔓 Unlock ₹99</button>`
-          : `<button class="tcp-btn ${attempted ? 'tcp-btn-retry' : 'tcp-btn-start'}" onclick="(typeof openTestIntroWithDB!=='undefined'&&(!ALL_TESTS.find(t=>t.id===${test.id})?.questions?.length)?openTestIntroWithDB:openTestIntro)(${test.id})">
+          : `<button class="tcp-btn ${attempted ? 'tcp-btn-retry' : 'tcp-btn-start'}" onclick="openTestIntro(${test.id})">
               ${attempted ? '↩ Re-Attempt' : '▶ Start Test'}
             </button>`}
       </div>
