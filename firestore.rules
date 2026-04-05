@@ -1,0 +1,165 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "theblackman2902@gmail.com" ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin'));
+    }
+
+    function getTenantId() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? 
+        getUserData().tenantId : null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (isSuperAdmin() || 
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          getUserData().role == 'admin'));
+    }
+
+    function isApproved() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        getUserData().status == 'approved';
+    }
+
+    function isDoctor() {
+      return isApproved() && 
+        getUserData().role == 'doctor';
+    }
+
+    function getEntityId() {
+      return isApproved() ? 
+        getUserData().entityId : null;
+    }
+
+    // Validate string length
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate that a value is positive
+    function isPositive(field) {
+      return request.resource.data[field] is number && request.resource.data[field] > 0;
+    }
+
+    // Domain Validators
+    function isValidTenant(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.subdomain is string && data.subdomain.matches("^[a-z0-9-]+$") &&
+             data.ownerEmail is string && data.ownerEmail.size() > 0 &&
+             data.plan in ['Basic', 'Pro', 'Enterprise'] &&
+             data.status in ['Active', 'Suspended', 'Trial', 'Pending Approval'] &&
+             (!('email' in data) || data.email is string) &&
+             (!('phone' in data) || data.phone is string) &&
+             (!('address' in data) || data.address is string) &&
+             (!('currency' in data) || data.currency in ['INR', 'NPR']);
+    }
+
+    function isValidExpense(data) {
+      return data.description is string && data.description.size() > 0 && data.description.size() < 200 &&
+             data.amount is number && data.amount > 0 &&
+             data.category in ['Materials', 'Rent', 'Utilities', 'Salaries', 'Marketing', 'Equipment', 'Maintenance', 'Other'] &&
+             data.paymentMethod in ['Cash', 'Bank Transfer', 'Credit Card', 'UPI', 'Cheque'] &&
+             data.date is string && data.date.matches("^\\d{4}-\\d{2}-\\d{2}$");
+    }
+
+    // Tenants
+    match /tenants/{tenantId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && getTenantId() == tenantId);
+      allow create: if isAuthenticated() && getUserData().role == 'admin' && 
+                    (!('tenantId' in getUserData()) || getUserData().tenantId == null) &&
+                    isValidTenant(request.resource.data);
+      allow update: if isSuperAdmin() || (isAuthenticated() && getTenantId() == tenantId && isAdmin());
+      allow delete: if isSuperAdmin();
+    }
+
+    // Users
+    match /users/{uid} {
+      allow read: if isSuperAdmin() || 
+                    (isAuthenticated() && (
+                      request.auth.uid == uid || 
+                      (isAdmin() && (
+                        resource.data.tenantId == getTenantId() || 
+                        (resource.data.status == 'pending' && resource.data.role == 'doctor')
+                      ))
+                    ));
+      allow create: if isAuthenticated() && request.auth.uid == uid;
+      allow update: if isSuperAdmin() || 
+                      (isAdmin() && (
+                        getTenantId() == resource.data.tenantId || 
+                        (resource.data.status == 'pending' && resource.data.role == 'doctor')
+                      )) || 
+                      (isAuthenticated() && request.auth.uid == uid);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Doctors
+    match /doctors/{doctorId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && getTenantId() == resource.data.tenantId && (isAdmin() || (isDoctor() && getEntityId() == doctorId)));
+      allow update: if isSuperAdmin() || (isAuthenticated() && getTenantId() == resource.data.tenantId && (isAdmin() || (isDoctor() && getEntityId() == doctorId)));
+      allow create, delete: if isSuperAdmin() || (isAdmin() && getTenantId() == request.resource.data.tenantId);
+    }
+
+    // Cases
+    match /cases/{caseId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && getTenantId() == resource.data.tenantId && (
+        isAdmin() || 
+        (isDoctor() && resource.data.doctorId == getEntityId())
+      ));
+      allow create: if isSuperAdmin() || (isAdmin() && getTenantId() == request.resource.data.tenantId);
+      allow update: if isSuperAdmin() || (isAuthenticated() && getTenantId() == resource.data.tenantId && isAdmin());
+      allow delete: if isSuperAdmin() || (isAdmin() && getTenantId() == resource.data.tenantId);
+    }
+
+    // Invoices
+    match /invoices/{invoiceId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && getTenantId() == resource.data.tenantId && (isAdmin() || (isDoctor() && resource.data.doctorId == getEntityId())));
+      allow write: if isSuperAdmin() || (isAdmin() && getTenantId() == (resource == null ? request.resource.data.tenantId : resource.data.tenantId));
+    }
+
+    // Invitations
+    match /invitations/{inviteId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isAdmin() && getTenantId() == resource.data.tenantId || request.auth.token.email == resource.data.email));
+      allow create: if isSuperAdmin() || (isAdmin() && getTenantId() == request.resource.data.tenantId);
+      allow update: if isSuperAdmin() || (isAuthenticated() && (isAdmin() && getTenantId() == resource.data.tenantId || request.auth.token.email == resource.data.email));
+      allow delete: if isSuperAdmin() || (isAdmin() && getTenantId() == resource.data.tenantId);
+    }
+
+    // Inventory
+    match /inventory/{itemId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || getTenantId() == resource.data.tenantId);
+      allow create, delete: if isSuperAdmin() || (isAdmin() && getTenantId() == request.resource.data.tenantId);
+      allow update: if isSuperAdmin() || (isAdmin() && getTenantId() == resource.data.tenantId);
+    }
+
+    // Material Usage
+    match /material_usage/{usageId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || getTenantId() == resource.data.tenantId);
+      allow create: if isSuperAdmin() || (isAdmin() && getTenantId() == request.resource.data.tenantId);
+      allow update, delete: if isSuperAdmin() || (isAdmin() && getTenantId() == resource.data.tenantId);
+    }
+
+    // Expenses
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || getTenantId() == resource.data.tenantId);
+      allow create: if isSuperAdmin() || (isAdmin() && getTenantId() == request.resource.data.tenantId && isValidExpense(request.resource.data));
+      allow update: if isSuperAdmin() || (isAdmin() && getTenantId() == resource.data.tenantId && isValidExpense(request.resource.data));
+      allow delete: if isSuperAdmin() || (isAdmin() && getTenantId() == resource.data.tenantId);
+    }
+  }
+}

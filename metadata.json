@@ -1,0 +1,7 @@
+{
+  "name": "DentalLab Pro",
+  "description": "Premium B2B Dental Laboratory Management System for real-time case tracking and business analytics.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

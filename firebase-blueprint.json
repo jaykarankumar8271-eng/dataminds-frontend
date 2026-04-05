@@ -1,0 +1,195 @@
+{
+  "entities": {
+    "Tenant": {
+      "title": "Tenant",
+      "description": "A dental lab (tenant) on the platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "subdomain": { "type": "string" },
+        "ownerEmail": { "type": "string", "format": "email" },
+        "email": { "type": "string", "format": "email" },
+        "plan": { "type": "string", "enum": ["Basic", "Pro", "Enterprise"] },
+        "status": { "type": "string", "enum": ["Active", "Suspended", "Trial", "Pending Approval"] },
+        "currency": { "type": "string", "enum": ["INR", "NPR"] },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "planExpiry": { "type": "string", "format": "date-time" },
+        "razorpaySubscriptionId": { "type": "string" },
+        "paymentStatus": { "type": "string", "enum": ["Paid", "Unpaid", "Pending"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "ownerEmail", "plan", "status"]
+    },
+    "Doctor": {
+      "title": "Doctor",
+      "description": "A dentist who sends orders to the lab.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "clinicName": { "type": "string" },
+        "address": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "clinicName", "tenantId"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "A dental order/case from a doctor.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "patientName": { "type": "string" },
+        "toothNumber": { "type": "string" },
+        "caseType": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["Received", "In Progress", "Ready", "Delivered"]
+        },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "price": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["doctorId", "patientName", "caseType", "status", "dueDate", "tenantId"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "A billing record for a doctor.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "caseIds": { "type": "array", "items": { "type": "string" } },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pending", "Paid"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["doctorId", "caseIds", "amount", "status", "tenantId"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User role and entity mapping.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "role": { "type": "string", "enum": ["super_admin", "admin", "doctor"] },
+        "entityId": { "type": "string", "description": "ID of the Doctor record" },
+        "email": { "type": "string" }
+      },
+      "required": ["uid", "role", "email"]
+    },
+    "Invitation": {
+      "title": "Invitation",
+      "description": "An invitation for a user to join a specific lab.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "tenantId": { "type": "string" },
+        "role": { "type": "string", "enum": ["doctor", "admin"] },
+        "status": { "type": "string", "enum": ["pending", "accepted", "expired"] },
+        "token": { "type": "string" },
+        "invitedBy": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "tenantId", "role", "status", "token", "expiresAt", "createdAt"]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "A material or supply item in the lab inventory.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "unit": { "type": "string" },
+        "quantity": { "type": "number" },
+        "minThreshold": { "type": "number" },
+        "costPerUnit": { "type": "number" },
+        "supplier": { "type": "string" },
+        "lastRestocked": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "category", "unit", "quantity", "minThreshold", "tenantId"]
+    },
+    "MaterialUsage": {
+      "title": "MaterialUsage",
+      "description": "A record of material used for a specific case.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "caseId": { "type": "string" },
+        "itemId": { "type": "string" },
+        "quantityUsed": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["caseId", "itemId", "quantityUsed", "timestamp", "tenantId"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "An operational expense for the lab.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["description", "amount", "category", "date", "paymentMethod", "tenantId"]
+    }
+  },
+  "firestore": {
+    "/tenants/{tenantId}": {
+      "schema": "Tenant",
+      "description": "Collection of lab tenants."
+    },
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "Collection of user profiles."
+    },
+    "/doctors/{doctorId}": {
+      "schema": "Doctor",
+      "description": "Collection of doctors."
+    },
+    "/cases/{caseId}": {
+      "schema": "Case",
+      "description": "Collection of dental cases."
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Collection of invoices."
+    },
+    "/invitations/{inviteId}": {
+      "schema": "Invitation",
+      "description": "Collection of user invitations."
+    },
+    "/inventory/{itemId}": {
+      "schema": "InventoryItem",
+      "description": "Collection of inventory items."
+    },
+    "/material_usage/{usageId}": {
+      "schema": "MaterialUsage",
+      "description": "Collection of material usage records."
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Collection of lab expenses."
+    }
+  }
+}

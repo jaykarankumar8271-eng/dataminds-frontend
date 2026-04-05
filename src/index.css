@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1F4E79;
+  --color-primary-light: #3A7CA5;
+  --color-secondary: #E6F2FA;
+  --color-accent: #3FBF9B;
+  --color-background-main: #FFFFFF;
+  --color-background-alt: #F4F6F8;
+  --color-text-main: #1C2B33;
+  --color-text-muted: #6B7C8F;
+  --color-border-light: #E0E6ED;
+
+  /* Dark Mode Colors */
+  --color-dark-bg: #0F172A;
+  --color-dark-card: #1E293B;
+  --color-dark-border: #334155;
+  --color-dark-text: #F8FAFC;
+  --color-dark-muted: #94A3B8;
+
+  /* Redefining common colors to avoid oklch issues with html2canvas */
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --breakpoint-xs: 480px;
+}
+
+@layer base {
+  body {
+    @apply bg-background-main text-text-main antialiased transition-colors duration-200;
+  }
+
+  .dark body {
+    @apply bg-dark-bg text-dark-text;
+  }
+}
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show the print content and all its ancestors to maintain visibility */
+  .print-content, 
+  .print-content *,
+  .print-content-parent {
+    visibility: visible !important;
+  }
+
+  /* Position the print content at the very top of the page */
+  .print-content {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 1cm !important;
+    background: white !important;
+    overflow: visible !important;
+    /* Force 1 page */
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Force horizontal layout on print even if screen is small */
+  .print-content .print-force-row,
+  .pdf-capture .print-force-row {
+    flex-direction: row !important;
+    display: flex !important;
+  }
+  
+  .print-content .print-grid-2,
+  .pdf-capture .print-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    display: grid !important;
+  }
+
+  /* Compact spacing for print and PDF capture */
+  .print-content .space-y-6,
+  .pdf-capture.space-y-6 {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .print-content .pb-6,
+  .pdf-capture .pb-6 {
+    padding-bottom: 0.25rem !important;
+  }
+
+  .pdf-capture-parent {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    position: static !important;
+  }
+
+  .pdf-capture {
+    width: 794px !important; /* Fixed width for A4 at 96dpi */
+    background: white !important;
+    padding: 0.6cm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  /* Hide scrollbars during capture and force overflow visible */
+  .pdf-capture,
+  .pdf-capture * {
+    overflow: visible !important;
+  }
+
+  .pdf-capture::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Specifically hide UI elements that shouldn't be on paper */
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Remove background overlays and shadows for printing */
+  .print-content-parent {
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  @page {
+    margin: 0;
+    size: A4 portrait;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E0E6ED;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6B7C8F;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
